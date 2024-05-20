@@ -12,7 +12,6 @@ require("@vechain/hardhat-web3");
 const fs = require('fs');
 const path = require('path');
 const proc = require('child_process');
-const { alias } = require("yargs");
 
 const argv = require('yargs/yargs')()
   .env('')
