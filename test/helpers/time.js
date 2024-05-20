@@ -1,10 +1,11 @@
 const ozHelpers = require('@openzeppelin/test-helpers');
 const helpers = require('@nomicfoundation/hardhat-network-helpers');
+const utils = require('./utils');
 
 module.exports = {
   clock: {
-    blocknumber: () => helpers.time.latestBlock(),
-    timestamp: () => helpers.time.latest(),
+    blocknumber: () => utils.latestBlock(),
+    timestamp: () => utils.latest(),
   },
   clockFromReceipt: {
     blocknumber: receipt => Promise.resolve(receipt.blockNumber),

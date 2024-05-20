@@ -6,9 +6,13 @@
 // - COMPILE_VERSION:   compiler version (default: 0.8.20)
 // - COINMARKETCAP:     coinmarkercat api key for USD value in gas report
 
+require("@vechain/hardhat-vechain");
+require("@vechain/hardhat-web3");
+
 const fs = require('fs');
 const path = require('path');
 const proc = require('child_process');
+const { alias } = require("yargs");
 
 const argv = require('yargs/yargs')()
   .env('')
@@ -49,6 +53,11 @@ const argv = require('yargs/yargs')()
       type: 'string',
       default: '0.8.20',
     },
+    evmVersion: {
+      alias: 'evmVersion',
+      type: 'string',
+      default: 'shanghai',
+    },
     coinmarketcap: {
       alias: 'coinmarketcapApiKey',
       type: 'string',
@@ -82,6 +91,7 @@ module.exports = {
         enabled: withOptimizations,
         runs: 200,
       },
+      evmVersion: argv.evmVersion,
       viaIR: withOptimizations && argv.ir,
       outputSelection: { '*': { '*': ['storageLayout'] } },
     },
@@ -101,6 +111,14 @@ module.exports = {
     hardhat: {
       blockGasLimit: 10000000,
       allowUnlimitedContractSize: !withOptimizations,
+    },
+    vechain: {
+      url: "http://127.0.0.1:8669",
+      accounts: {
+        mnemonic: "denial kitchen pet squirrel other broom bar gas better priority spoil cross",
+        count: 10,
+      },
+      gas: 10000000
     },
   },
   exposed: {
