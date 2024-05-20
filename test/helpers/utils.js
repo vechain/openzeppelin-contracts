@@ -58,5 +58,5 @@ const hre = require('hardhat');
   module.exports = {
       latest,
       latestBlock,
-      getVechainProvider: getThorProvider
+      getThorProvider
   }
