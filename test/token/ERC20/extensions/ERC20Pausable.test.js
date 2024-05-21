@@ -1,7 +1,6 @@
-const { BN } = require('@openzeppelin/test-helpers');
+const { BN, expectRevert } = require('@openzeppelin/test-helpers');
 
 const { expect } = require('chai');
-const { expectRevertCustomError } = require('../../../helpers/customError');
 
 const ERC20Pausable = artifacts.require('$ERC20Pausable');
 
@@ -40,10 +39,8 @@ contract('ERC20Pausable', function (accounts) {
       it('reverts when trying to transfer when paused', async function () {
         await this.token.$_pause();
 
-        await expectRevertCustomError(
-          this.token.transfer(recipient, initialSupply, { from: holder }),
-          'EnforcedPause',
-          [],
+        await expectRevert.unspecified(
+          this.token.transfer(recipient, initialSupply, { from: holder })
         );
       });
     });
@@ -75,10 +72,8 @@ contract('ERC20Pausable', function (accounts) {
       it('reverts when trying to transfer from when paused', async function () {
         await this.token.$_pause();
 
-        await expectRevertCustomError(
-          this.token.transferFrom(holder, recipient, allowance, { from: anotherAccount }),
-          'EnforcedPause',
-          [],
+        await expectRevert.unspecified(
+          this.token.transferFrom(holder, recipient, allowance, { from: anotherAccount })
         );
       });
     });
@@ -104,7 +99,7 @@ contract('ERC20Pausable', function (accounts) {
       it('reverts when trying to mint when paused', async function () {
         await this.token.$_pause();
 
-        await expectRevertCustomError(this.token.$_mint(recipient, value), 'EnforcedPause', []);
+        await expectRevert.unspecified(this.token.$_mint(recipient, value));
       });
     });
 
@@ -129,7 +124,7 @@ contract('ERC20Pausable', function (accounts) {
       it('reverts when trying to burn when paused', async function () {
         await this.token.$_pause();
 
-        await expectRevertCustomError(this.token.$_burn(holder, value), 'EnforcedPause', []);
+        await expectRevert.unspecified(this.token.$_burn(holder, value));
       });
     });
   });

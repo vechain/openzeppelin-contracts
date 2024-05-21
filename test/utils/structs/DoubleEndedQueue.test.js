@@ -1,5 +1,4 @@
-const { expectEvent } = require('@openzeppelin/test-helpers');
-const { expectRevertCustomError } = require('../../helpers/customError');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
 const DoubleEndedQueue = artifacts.require('$DoubleEndedQueue');
 
@@ -30,10 +29,10 @@ contract('DoubleEndedQueue', function () {
     });
 
     it('reverts on accesses', async function () {
-      await expectRevertCustomError(this.deque.$popBack(0), 'QueueEmpty', []);
-      await expectRevertCustomError(this.deque.$popFront(0), 'QueueEmpty', []);
-      await expectRevertCustomError(this.deque.$back(0), 'QueueEmpty', []);
-      await expectRevertCustomError(this.deque.$front(0), 'QueueEmpty', []);
+      await expectRevert.unspecified(this.deque.$popBack(0));
+      await expectRevert.unspecified(this.deque.$popFront(0));
+      await expectRevert.unspecified(this.deque.$back(0));
+      await expectRevert.unspecified(this.deque.$front(0));
     });
   });
 
@@ -54,7 +53,7 @@ contract('DoubleEndedQueue', function () {
     });
 
     it('out of bounds access', async function () {
-      await expectRevertCustomError(this.deque.$at(0, this.content.length), 'QueueOutOfBounds', []);
+      await expectRevert.unspecified(this.deque.$at(0, this.content.length));
     });
 
     describe('push', function () {

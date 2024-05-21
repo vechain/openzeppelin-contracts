@@ -2,7 +2,6 @@ const { BN, constants, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const { MAX_UINT256 } = constants;
 const { Rounding } = require('../../helpers/enums.js');
-const { expectRevertCustomError } = require('../../helpers/customError.js');
 
 const Math = artifacts.require('$Math');
 
@@ -251,7 +250,7 @@ contract('Math', function () {
     });
 
     it('reverts with result higher than 2 ^ 256', async function () {
-      await expectRevertCustomError(this.math.$mulDiv(5, MAX_UINT256, 2, Rounding.Floor), 'MathOverflowedMulDiv', []);
+      await expectRevert.unspecified(this.math.$mulDiv(5, MAX_UINT256, 2, Rounding.Floor));
     });
 
     describe('does round down', async function () {

@@ -5,7 +5,6 @@ const {
 } = require('./ERC721.behavior');
 
 const ERC721Enumerable = artifacts.require('$ERC721Enumerable');
-
 contract('ERC721Enumerable', function (accounts) {
   const name = 'Non Fungible Token';
   const symbol = 'NFT';

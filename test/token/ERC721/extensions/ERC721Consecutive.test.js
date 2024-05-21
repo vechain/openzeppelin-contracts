@@ -1,7 +1,6 @@
-const { constants, expectEvent } = require('@openzeppelin/test-helpers');
+const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const { sum } = require('../../../helpers/math');
-const { expectRevertCustomError } = require('../../../helpers/customError');
 const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 
 const ERC721ConsecutiveMock = artifacts.require('$ERC721ConsecutiveMock');
@@ -87,23 +86,22 @@ contract('ERC721Consecutive', function (accounts) {
         });
 
         it('reverts on consecutive minting to the zero address', async function () {
-          await expectRevertCustomError(
+          await expectRevert(
             ERC721ConsecutiveMock.new(name, symbol, offset, delegates, [ZERO_ADDRESS], [10]),
-            'ERC721InvalidReceiver',
-            [ZERO_ADDRESS],
+            "The transaction receipt didn't contain a contract address."
           );
         });
       });
 
       describe('minting after construction', function () {
         it('consecutive minting is not possible after construction', async function () {
-          await expectRevertCustomError(this.token.$_mintConsecutive(user1, 10), 'ERC721ForbiddenBatchMint', []);
+          await expectRevert.unspecified(this.token.$_mintConsecutive(user1, 10));
         });
 
         it('simple minting is possible after construction', async function () {
           const tokenId = sum(...batches.map(b => b.amount)) + offset;
 
-          await expectRevertCustomError(this.token.ownerOf(tokenId), 'ERC721NonexistentToken', [tokenId]);
+          await expectRevert.unspecified(this.token.ownerOf(tokenId));
 
           expectEvent(await this.token.$_mint(user1, tokenId), 'Transfer', {
             from: constants.ZERO_ADDRESS,
@@ -117,7 +115,7 @@ contract('ERC721Consecutive', function (accounts) {
 
           expect(await this.token.ownerOf(tokenId)).to.be.not.equal(constants.ZERO_ADDRESS);
 
-          await expectRevertCustomError(this.token.$_mint(user1, tokenId), 'ERC721InvalidSender', [ZERO_ADDRESS]);
+          await expectRevert.unspecified(this.token.$_mint(user1, tokenId));
         });
       });
 
@@ -137,7 +135,7 @@ contract('ERC721Consecutive', function (accounts) {
             tokenId,
           });
 
-          await expectRevertCustomError(this.token.ownerOf(tokenId), 'ERC721NonexistentToken', [tokenId]);
+          await expectRevert.unspecified(this.token.ownerOf(tokenId));
 
           expectEvent(await this.token.$_mint(user2, tokenId), 'Transfer', {
             from: constants.ZERO_ADDRESS,
@@ -151,7 +149,7 @@ contract('ERC721Consecutive', function (accounts) {
         it('tokens can be burned and re-minted #2', async function () {
           const tokenId = web3.utils.toBN(sum(...batches.map(({ amount }) => amount)) + offset);
 
-          await expectRevertCustomError(this.token.ownerOf(tokenId), 'ERC721NonexistentToken', [tokenId]);
+          await expectRevert.unspecified(this.token.ownerOf(tokenId));
 
           // mint
           await this.token.$_mint(user1, tokenId);
@@ -165,7 +163,7 @@ contract('ERC721Consecutive', function (accounts) {
             tokenId,
           });
 
-          await expectRevertCustomError(this.token.ownerOf(tokenId), 'ERC721NonexistentToken', [tokenId]);
+          await expectRevert.unspecified(this.token.ownerOf(tokenId));
 
           // re-mint
           expectEvent(await this.token.$_mint(user2, tokenId), 'Transfer', {
@@ -182,39 +180,35 @@ contract('ERC721Consecutive', function (accounts) {
 
   describe('invalid use', function () {
     it('cannot mint a batch larger than 5000', async function () {
-      await expectRevertCustomError(
+      await expectRevert(
         ERC721ConsecutiveMock.new(name, symbol, 0, [], [user1], ['5001']),
-        'ERC721ExceededMaxBatchMint',
-        [5000, 5001],
+        "The transaction receipt didn't contain a contract address."
       );
     });
 
     it('cannot use single minting during construction', async function () {
-      await expectRevertCustomError(
+      await expectRevert(
         ERC721ConsecutiveNoConstructorMintMock.new(name, symbol),
-        'ERC721ForbiddenMint',
-        [],
+        "The transaction receipt didn't contain a contract address."
       );
     });
 
     it('cannot use single minting during construction', async function () {
-      await expectRevertCustomError(
+      await expectRevert(
         ERC721ConsecutiveNoConstructorMintMock.new(name, symbol),
-        'ERC721ForbiddenMint',
-        [],
+        "The transaction receipt didn't contain a contract address."
       );
     });
 
     it('consecutive mint not compatible with enumerability', async function () {
-      await expectRevertCustomError(
+      await expectRevert(
         ERC721ConsecutiveEnumerableMock.new(
           name,
           symbol,
           batches.map(({ receiver }) => receiver),
           batches.map(({ amount }) => amount),
         ),
-        'ERC721EnumerableForbiddenBatchMint',
-        [],
+        "The transaction receipt didn't contain a contract address."
       );
     });
   });

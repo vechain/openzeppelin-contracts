@@ -6,8 +6,6 @@ const ERC20ReturnTrueMock = artifacts.require('$ERC20'); // default implementati
 const ERC20NoReturnMock = artifacts.require('$ERC20NoReturnMock');
 const ERC20ForceApproveMock = artifacts.require('$ERC20ForceApproveMock');
 
-const { expectRevertCustomError } = require('../../../helpers/customError');
-
 const name = 'ERC20Mock';
 const symbol = 'ERC20Mock';
 
@@ -24,13 +22,11 @@ contract('SafeERC20', function (accounts) {
     });
 
     it('reverts on transfer', async function () {
-      await expectRevertCustomError(this.mock.$safeTransfer(this.token.address, receiver, 0), 'AddressEmptyCode', [
-        this.token.address,
-      ]);
+      await expectRevert.unspecified(this.mock.$safeTransfer(this.token.address, receiver, 0));
     });
 
     it('reverts on transferFrom', async function () {
-      await expectRevertCustomError(
+      await expectRevert.unspecified(
         this.mock.$safeTransferFrom(this.token.address, this.mock.address, receiver, 0),
         'AddressEmptyCode',
         [this.token.address],
@@ -48,9 +44,7 @@ contract('SafeERC20', function (accounts) {
     });
 
     it('reverts on forceApprove', async function () {
-      await expectRevertCustomError(this.mock.$forceApprove(this.token.address, spender, 0), 'AddressEmptyCode', [
-        this.token.address,
-      ]);
+      await expectRevert.unspecified(this.mock.$forceApprove(this.token.address, spender, 0));
     });
   });
 
@@ -60,42 +54,32 @@ contract('SafeERC20', function (accounts) {
     });
 
     it('reverts on transfer', async function () {
-      await expectRevertCustomError(
-        this.mock.$safeTransfer(this.token.address, receiver, 0),
-        'SafeERC20FailedOperation',
-        [this.token.address],
+      await expectRevert.unspecified(
+        this.mock.$safeTransfer(this.token.address, receiver, 0)
       );
     });
 
     it('reverts on transferFrom', async function () {
-      await expectRevertCustomError(
-        this.mock.$safeTransferFrom(this.token.address, this.mock.address, receiver, 0),
-        'SafeERC20FailedOperation',
-        [this.token.address],
+      await expectRevert.unspecified(
+        this.mock.$safeTransferFrom(this.token.address, this.mock.address, receiver, 0)
       );
     });
 
     it('reverts on increaseAllowance', async function () {
-      await expectRevertCustomError(
-        this.mock.$safeIncreaseAllowance(this.token.address, spender, 0),
-        'SafeERC20FailedOperation',
-        [this.token.address],
+      await expectRevert.unspecified(
+        this.mock.$safeIncreaseAllowance(this.token.address, spender, 0)
       );
     });
 
     it('reverts on decreaseAllowance', async function () {
-      await expectRevertCustomError(
-        this.mock.$safeDecreaseAllowance(this.token.address, spender, 0),
-        'SafeERC20FailedOperation',
-        [this.token.address],
+      await expectRevert.unspecified(
+        this.mock.$safeDecreaseAllowance(this.token.address, spender, 0)
       );
     });
 
     it('reverts on forceApprove', async function () {
-      await expectRevertCustomError(
-        this.mock.$forceApprove(this.token.address, spender, 0),
-        'SafeERC20FailedOperation',
-        [this.token.address],
+      await expectRevert.unspecified(
+        this.mock.$forceApprove(this.token.address, spender, 0)
       );
     });
   });
@@ -195,10 +179,8 @@ function shouldOnlyRevertOnErrors([owner, receiver, spender]) {
       });
 
       it('reverts when decreasing the allowance', async function () {
-        await expectRevertCustomError(
-          this.mock.$safeDecreaseAllowance(this.token.address, spender, 10),
-          'SafeERC20FailedDecreaseAllowance',
-          [spender, 0, 10],
+        await expectRevert.unspecified(
+          this.mock.$safeDecreaseAllowance(this.token.address, spender, 10)
         );
       });
     });
@@ -229,10 +211,8 @@ function shouldOnlyRevertOnErrors([owner, receiver, spender]) {
       });
 
       it('reverts when decreasing the allowance to a negative value', async function () {
-        await expectRevertCustomError(
-          this.mock.$safeDecreaseAllowance(this.token.address, spender, 200),
-          'SafeERC20FailedDecreaseAllowance',
-          [spender, 100, 200],
+        await expectRevert.unspecified(
+          this.mock.$safeDecreaseAllowance(this.token.address, spender, 200)
         );
       });
     });

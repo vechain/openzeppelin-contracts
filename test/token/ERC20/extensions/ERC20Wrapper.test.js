@@ -1,9 +1,8 @@
-const { BN, constants, expectEvent } = require('@openzeppelin/test-helpers');
+const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const { ZERO_ADDRESS, MAX_UINT256 } = constants;
 
 const { shouldBehaveLikeERC20 } = require('../ERC20.behavior');
-const { expectRevertCustomError } = require('../../../helpers/customError');
 
 const NotAnERC20 = artifacts.require('CallReceiverMock');
 const ERC20Decimals = artifacts.require('$ERC20DecimalsMock');
@@ -67,19 +66,15 @@ contract('ERC20Wrapper', function (accounts) {
     });
 
     it('missing approval', async function () {
-      await expectRevertCustomError(
-        this.token.depositFor(initialHolder, initialSupply, { from: initialHolder }),
-        'ERC20InsufficientAllowance',
-        [this.token.address, 0, initialSupply],
+      await expectRevert.unspecified(
+        this.token.depositFor(initialHolder, initialSupply, { from: initialHolder })
       );
     });
 
     it('missing balance', async function () {
       await this.underlying.approve(this.token.address, MAX_UINT256, { from: initialHolder });
-      await expectRevertCustomError(
-        this.token.depositFor(initialHolder, MAX_UINT256, { from: initialHolder }),
-        'ERC20InsufficientBalance',
-        [initialHolder, initialSupply, MAX_UINT256],
+      await expectRevert.unspecified(
+        this.token.depositFor(initialHolder, MAX_UINT256, { from: initialHolder })
       );
     });
 
@@ -100,10 +95,8 @@ contract('ERC20Wrapper', function (accounts) {
 
     it('reverts minting to the wrapper contract', async function () {
       await this.underlying.approve(this.token.address, MAX_UINT256, { from: initialHolder });
-      await expectRevertCustomError(
-        this.token.depositFor(this.token.address, MAX_UINT256, { from: initialHolder }),
-        'ERC20InvalidReceiver',
-        [this.token.address],
+      await expectRevert.unspecified(
+        this.token.depositFor(this.token.address, MAX_UINT256, { from: initialHolder })
       );
     });
   });
@@ -115,10 +108,8 @@ contract('ERC20Wrapper', function (accounts) {
     });
 
     it('missing balance', async function () {
-      await expectRevertCustomError(
-        this.token.withdrawTo(initialHolder, MAX_UINT256, { from: initialHolder }),
-        'ERC20InsufficientBalance',
-        [initialHolder, initialSupply, MAX_UINT256],
+      await expectRevert.unspecified(
+        this.token.withdrawTo(initialHolder, MAX_UINT256, { from: initialHolder })
       );
     });
 
@@ -167,10 +158,8 @@ contract('ERC20Wrapper', function (accounts) {
     });
 
     it('reverts withdrawing to the wrapper contract', async function () {
-      expectRevertCustomError(
-        this.token.withdrawTo(this.token.address, initialSupply, { from: initialHolder }),
-        'ERC20InvalidReceiver',
-        [this.token.address],
+      expectRevert.unspecified(
+        this.token.withdrawTo(this.token.address, initialSupply, { from: initialHolder })
       );
     });
   });

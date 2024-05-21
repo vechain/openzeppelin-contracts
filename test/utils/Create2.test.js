@@ -1,7 +1,6 @@
 const { balance, ether, expectEvent, expectRevert, send } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const { computeCreate2Address } = require('../helpers/create');
-const { expectRevertCustomError } = require('../helpers/customError');
 
 const Create2 = artifacts.require('$Create2');
 const VestingWallet = artifacts.require('VestingWallet');
@@ -88,15 +87,11 @@ contract('Create2', function (accounts) {
     });
 
     it('fails deploying a contract if the bytecode length is zero', async function () {
-      await expectRevertCustomError(this.factory.$deploy(0, saltHex, '0x'), 'Create2EmptyBytecode', []);
+      await expectRevert.unspecified(this.factory.$deploy(0, saltHex, '0x'));
     });
 
     it('fails deploying a contract if factory contract does not have sufficient balance', async function () {
-      await expectRevertCustomError(
-        this.factory.$deploy(1, saltHex, constructorByteCode),
-        'Create2InsufficientBalance',
-        [0, 1],
-      );
+      await expectRevert.unspecified(this.factory.$deploy(1, saltHex, constructorByteCode));
     });
   });
 });

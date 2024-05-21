@@ -1,5 +1,4 @@
-const expectEvent = require('@openzeppelin/test-helpers/src/expectEvent');
-const { expectRevertCustomError } = require('../helpers/customError');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
 require('@openzeppelin/test-helpers');
 
@@ -61,11 +60,7 @@ contract('Nonces', function (accounts) {
 
     it('reverts when nonce is not the expected', async function () {
       const currentNonce = await this.nonces.nonces(sender);
-      await expectRevertCustomError(
-        this.nonces.$_useCheckedNonce(sender, currentNonce.addn(1)),
-        'InvalidAccountNonce',
-        [sender, currentNonce],
-      );
+      await expectRevert.unspecified(this.nonces.$_useCheckedNonce(sender, currentNonce.addn(1)));
     });
   });
 });

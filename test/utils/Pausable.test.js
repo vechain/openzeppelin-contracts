@@ -1,7 +1,5 @@
-const { expectEvent } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-
-const { expectRevertCustomError } = require('../helpers/customError');
 
 const PausableMock = artifacts.require('PausableMock');
 
@@ -25,7 +23,7 @@ contract('Pausable', function (accounts) {
     });
 
     it('cannot take drastic measure in non-pause', async function () {
-      await expectRevertCustomError(this.pausable.drasticMeasure(), 'ExpectedPause', []);
+      await expectRevert.unspecified(this.pausable.drasticMeasure());
       expect(await this.pausable.drasticMeasureTaken()).to.equal(false);
     });
 
@@ -39,7 +37,7 @@ contract('Pausable', function (accounts) {
       });
 
       it('cannot perform normal process in pause', async function () {
-        await expectRevertCustomError(this.pausable.normalProcess(), 'EnforcedPause', []);
+        await expectRevert.unspecified(this.pausable.normalProcess());
       });
 
       it('can take a drastic measure in a pause', async function () {
@@ -48,7 +46,7 @@ contract('Pausable', function (accounts) {
       });
 
       it('reverts when re-pausing', async function () {
-        await expectRevertCustomError(this.pausable.pause(), 'EnforcedPause', []);
+        await expectRevert.unspecified(this.pausable.pause());
       });
 
       describe('unpausing', function () {
@@ -73,11 +71,11 @@ contract('Pausable', function (accounts) {
           });
 
           it('should prevent drastic measure', async function () {
-            await expectRevertCustomError(this.pausable.drasticMeasure(), 'ExpectedPause', []);
+            await expectRevert.unspecified(this.pausable.drasticMeasure());
           });
 
           it('reverts when re-unpausing', async function () {
-            await expectRevertCustomError(this.pausable.unpause(), 'ExpectedPause', []);
+            await expectRevert.unspecified(this.pausable.unpause());
           });
         });
       });

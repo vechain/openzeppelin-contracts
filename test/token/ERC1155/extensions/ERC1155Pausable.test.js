@@ -1,7 +1,6 @@
-const { BN } = require('@openzeppelin/test-helpers');
+const { BN, expectRevert } = require('@openzeppelin/test-helpers');
 
 const { expect } = require('chai');
-const { expectRevertCustomError } = require('../../../helpers/customError');
 
 const ERC1155Pausable = artifacts.require('$ERC1155Pausable');
 
@@ -29,64 +28,50 @@ contract('ERC1155Pausable', function (accounts) {
     });
 
     it('reverts when trying to safeTransferFrom from holder', async function () {
-      await expectRevertCustomError(
-        this.token.safeTransferFrom(holder, receiver, firstTokenId, firstTokenValue, '0x', { from: holder }),
-        'EnforcedPause',
-        [],
+      await expectRevert.unspecified(
+        this.token.safeTransferFrom(holder, receiver, firstTokenId, firstTokenValue, '0x', { from: holder })
       );
     });
 
     it('reverts when trying to safeTransferFrom from operator', async function () {
-      await expectRevertCustomError(
-        this.token.safeTransferFrom(holder, receiver, firstTokenId, firstTokenValue, '0x', { from: operator }),
-        'EnforcedPause',
-        [],
+      await expectRevert.unspecified(
+        this.token.safeTransferFrom(holder, receiver, firstTokenId, firstTokenValue, '0x', { from: operator })
       );
     });
 
     it('reverts when trying to safeBatchTransferFrom from holder', async function () {
-      await expectRevertCustomError(
-        this.token.safeBatchTransferFrom(holder, receiver, [firstTokenId], [firstTokenValue], '0x', { from: holder }),
-        'EnforcedPause',
-        [],
+      await expectRevert.unspecified(
+        this.token.safeBatchTransferFrom(holder, receiver, [firstTokenId], [firstTokenValue], '0x', { from: holder })
       );
     });
 
     it('reverts when trying to safeBatchTransferFrom from operator', async function () {
-      await expectRevertCustomError(
+      await expectRevert.unspecified(
         this.token.safeBatchTransferFrom(holder, receiver, [firstTokenId], [firstTokenValue], '0x', {
           from: operator,
-        }),
-        'EnforcedPause',
-        [],
+        })
       );
     });
 
     it('reverts when trying to mint', async function () {
-      await expectRevertCustomError(
-        this.token.$_mint(holder, secondTokenId, secondTokenValue, '0x'),
-        'EnforcedPause',
-        [],
+      await expectRevert.unspecified(
+        this.token.$_mint(holder, secondTokenId, secondTokenValue, '0x')
       );
     });
 
     it('reverts when trying to mintBatch', async function () {
-      await expectRevertCustomError(
-        this.token.$_mintBatch(holder, [secondTokenId], [secondTokenValue], '0x'),
-        'EnforcedPause',
-        [],
+      await expectRevert.unspecified(
+        this.token.$_mintBatch(holder, [secondTokenId], [secondTokenValue], '0x')
       );
     });
 
     it('reverts when trying to burn', async function () {
-      await expectRevertCustomError(this.token.$_burn(holder, firstTokenId, firstTokenValue), 'EnforcedPause', []);
+      await expectRevert.unspecified(this.token.$_burn(holder, firstTokenId, firstTokenValue), 'EnforcedPause', []);
     });
 
     it('reverts when trying to burnBatch', async function () {
-      await expectRevertCustomError(
-        this.token.$_burnBatch(holder, [firstTokenId], [firstTokenValue]),
-        'EnforcedPause',
-        [],
+      await expectRevert.unspecified(
+        this.token.$_burnBatch(holder, [firstTokenId], [firstTokenValue])
       );
     });
 

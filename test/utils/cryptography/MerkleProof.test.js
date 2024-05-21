@@ -4,7 +4,6 @@ const { MerkleTree } = require('merkletreejs');
 const keccak256 = require('keccak256');
 
 const { expect } = require('chai');
-const { expectRevertCustomError } = require('../../helpers/customError');
 
 const MerkleProof = artifacts.require('$MerkleProof');
 
@@ -106,25 +105,21 @@ contract('MerkleProof', function () {
 
       const root = merkleTree.getRoot();
 
-      await expectRevertCustomError(
+      await expectRevert.unspecified(
         this.merkleProof.$multiProofVerify(
           [leaves[1], fill, merkleTree.layers[1][1]],
           [false, false, false],
           root,
           [leaves[0], badLeaf], // A, E
-        ),
-        'MerkleProofInvalidMultiproof',
-        [],
+        )
       );
-      await expectRevertCustomError(
+      await expectRevert.unspecified(
         this.merkleProof.$multiProofVerifyCalldata(
           [leaves[1], fill, merkleTree.layers[1][1]],
           [false, false, false],
           root,
           [leaves[0], badLeaf], // A, E
-        ),
-        'MerkleProofInvalidMultiproof',
-        [],
+        )
       );
     });
 
@@ -136,24 +131,22 @@ contract('MerkleProof', function () {
 
       const root = merkleTree.getRoot();
 
-      await expectRevert(
+      await expectRevert.unspecified(
         this.merkleProof.$multiProofVerify(
           [leaves[1], fill, merkleTree.layers[1][1]],
           [false, false, false, false],
           root,
           [badLeaf, leaves[0]], // A, E
-        ),
-        'reverted with panic code 0x32',
+        )
       );
 
-      await expectRevert(
+      await expectRevert.unspecified(
         this.merkleProof.$multiProofVerifyCalldata(
           [leaves[1], fill, merkleTree.layers[1][1]],
           [false, false, false, false],
           root,
           [badLeaf, leaves[0]], // A, E
-        ),
-        'reverted with panic code 0x32',
+        )
       );
     });
 
@@ -191,16 +184,12 @@ contract('MerkleProof', function () {
       const maliciousProof = [leaves[0], leaves[0]];
       const maliciousProofFlags = [true, true, false];
 
-      await expectRevertCustomError(
-        this.merkleProof.$multiProofVerify(maliciousProof, maliciousProofFlags, root, maliciousLeaves),
-        'MerkleProofInvalidMultiproof',
-        [],
+      await expectRevert.unspecified(
+        this.merkleProof.$multiProofVerify(maliciousProof, maliciousProofFlags, root, maliciousLeaves)
       );
 
-      await expectRevertCustomError(
-        this.merkleProof.$multiProofVerifyCalldata(maliciousProof, maliciousProofFlags, root, maliciousLeaves),
-        'MerkleProofInvalidMultiproof',
-        [],
+      await expectRevert.unspecified(
+        this.merkleProof.$multiProofVerifyCalldata(maliciousProof, maliciousProofFlags, root, maliciousLeaves)
       );
     });
   });

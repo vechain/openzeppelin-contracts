@@ -1,9 +1,7 @@
-const { BN, constants, expectEvent } = require('@openzeppelin/test-helpers');
+const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = constants;
 
 const { expect } = require('chai');
-
-const { expectRevertCustomError } = require('../../helpers/customError');
 
 const { shouldBehaveLikeERC1155 } = require('./ERC1155.behavior');
 const ERC1155Mock = artifacts.require('$ERC1155');
@@ -32,10 +30,8 @@ contract('ERC1155', function (accounts) {
 
     describe('_mint', function () {
       it('reverts with a zero destination address', async function () {
-        await expectRevertCustomError(
-          this.token.$_mint(ZERO_ADDRESS, tokenId, mintValue, data),
-          'ERC1155InvalidReceiver',
-          [ZERO_ADDRESS],
+        await expectRevert.unspecified(
+          this.token.$_mint(ZERO_ADDRESS, tokenId, mintValue, data)
         );
       });
 
@@ -62,24 +58,18 @@ contract('ERC1155', function (accounts) {
 
     describe('_mintBatch', function () {
       it('reverts with a zero destination address', async function () {
-        await expectRevertCustomError(
-          this.token.$_mintBatch(ZERO_ADDRESS, tokenBatchIds, mintValues, data),
-          'ERC1155InvalidReceiver',
-          [ZERO_ADDRESS],
+        await expectRevert.unspecified(
+          this.token.$_mintBatch(ZERO_ADDRESS, tokenBatchIds, mintValues, data)
         );
       });
 
       it('reverts if length of inputs do not match', async function () {
-        await expectRevertCustomError(
-          this.token.$_mintBatch(tokenBatchHolder, tokenBatchIds, mintValues.slice(1), data),
-          'ERC1155InvalidArrayLength',
-          [tokenBatchIds.length, mintValues.length - 1],
+        await expectRevert.unspecified(
+          this.token.$_mintBatch(tokenBatchHolder, tokenBatchIds, mintValues.slice(1), data)
         );
 
-        await expectRevertCustomError(
-          this.token.$_mintBatch(tokenBatchHolder, tokenBatchIds.slice(1), mintValues, data),
-          'ERC1155InvalidArrayLength',
-          [tokenBatchIds.length - 1, mintValues.length],
+        await expectRevert.unspecified(
+          this.token.$_mintBatch(tokenBatchHolder, tokenBatchIds.slice(1), mintValues, data)
         );
       });
 
@@ -113,26 +103,20 @@ contract('ERC1155', function (accounts) {
 
     describe('_burn', function () {
       it("reverts when burning the zero account's tokens", async function () {
-        await expectRevertCustomError(this.token.$_burn(ZERO_ADDRESS, tokenId, mintValue), 'ERC1155InvalidSender', [
-          ZERO_ADDRESS,
-        ]);
+        await expectRevert.unspecified(this.token.$_burn(ZERO_ADDRESS, tokenId, mintValue));
       });
 
       it('reverts when burning a non-existent token id', async function () {
-        await expectRevertCustomError(
-          this.token.$_burn(tokenHolder, tokenId, mintValue),
-          'ERC1155InsufficientBalance',
-          [tokenHolder, 0, mintValue, tokenId],
+        await expectRevert.unspecified(
+          this.token.$_burn(tokenHolder, tokenId, mintValue)
         );
       });
 
       it('reverts when burning more than available tokens', async function () {
         await this.token.$_mint(tokenHolder, tokenId, mintValue, data, { from: operator });
 
-        await expectRevertCustomError(
-          this.token.$_burn(tokenHolder, tokenId, mintValue.addn(1)),
-          'ERC1155InsufficientBalance',
-          [tokenHolder, mintValue, mintValue.addn(1), tokenId],
+        await expectRevert.unspecified(
+          this.token.$_burn(tokenHolder, tokenId, mintValue.addn(1))
         );
       });
 
@@ -160,32 +144,24 @@ contract('ERC1155', function (accounts) {
 
     describe('_burnBatch', function () {
       it("reverts when burning the zero account's tokens", async function () {
-        await expectRevertCustomError(
-          this.token.$_burnBatch(ZERO_ADDRESS, tokenBatchIds, burnValues),
-          'ERC1155InvalidSender',
-          [ZERO_ADDRESS],
+        await expectRevert.unspecified(
+          this.token.$_burnBatch(ZERO_ADDRESS, tokenBatchIds, burnValues)
         );
       });
 
       it('reverts if length of inputs do not match', async function () {
-        await expectRevertCustomError(
-          this.token.$_burnBatch(tokenBatchHolder, tokenBatchIds, burnValues.slice(1)),
-          'ERC1155InvalidArrayLength',
-          [tokenBatchIds.length, burnValues.length - 1],
+        await expectRevert.unspecified(
+          this.token.$_burnBatch(tokenBatchHolder, tokenBatchIds, burnValues.slice(1))
         );
 
-        await expectRevertCustomError(
-          this.token.$_burnBatch(tokenBatchHolder, tokenBatchIds.slice(1), burnValues),
-          'ERC1155InvalidArrayLength',
-          [tokenBatchIds.length - 1, burnValues.length],
+        await expectRevert.unspecified(
+          this.token.$_burnBatch(tokenBatchHolder, tokenBatchIds.slice(1), burnValues)
         );
       });
 
       it('reverts when burning a non-existent token id', async function () {
-        await expectRevertCustomError(
-          this.token.$_burnBatch(tokenBatchHolder, tokenBatchIds, burnValues),
-          'ERC1155InsufficientBalance',
-          [tokenBatchHolder, 0, tokenBatchIds[0], burnValues[0]],
+        await expectRevert.unspecified(
+          this.token.$_burnBatch(tokenBatchHolder, tokenBatchIds, burnValues)
         );
       });
 

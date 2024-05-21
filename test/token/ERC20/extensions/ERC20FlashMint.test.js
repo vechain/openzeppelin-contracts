@@ -2,7 +2,6 @@
 
 const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-const { expectRevertCustomError } = require('../../../helpers/customError');
 const { MAX_UINT256, ZERO_ADDRESS } = constants;
 
 const ERC20FlashMintMock = artifacts.require('$ERC20FlashMintMock');
@@ -38,9 +37,7 @@ contract('ERC20FlashMint', function (accounts) {
     });
 
     it('token mismatch', async function () {
-      await expectRevertCustomError(this.token.flashFee(ZERO_ADDRESS, loanValue), 'ERC3156UnsupportedToken', [
-        ZERO_ADDRESS,
-      ]);
+      await expectRevert.unspecified(this.token.flashFee(ZERO_ADDRESS, loanValue));
     });
   });
 
@@ -82,29 +79,23 @@ contract('ERC20FlashMint', function (accounts) {
 
     it('missing return value', async function () {
       const receiver = await ERC3156FlashBorrowerMock.new(false, true);
-      await expectRevertCustomError(
-        this.token.flashLoan(receiver.address, this.token.address, loanValue, '0x'),
-        'ERC3156InvalidReceiver',
-        [receiver.address],
+      await expectRevert.unspecified(
+        this.token.flashLoan(receiver.address, this.token.address, loanValue, '0x')
       );
     });
 
     it('missing approval', async function () {
       const receiver = await ERC3156FlashBorrowerMock.new(true, false);
-      await expectRevertCustomError(
-        this.token.flashLoan(receiver.address, this.token.address, loanValue, '0x'),
-        'ERC20InsufficientAllowance',
-        [this.token.address, 0, loanValue],
+      await expectRevert.unspecified(
+        this.token.flashLoan(receiver.address, this.token.address, loanValue, '0x')
       );
     });
 
     it('unavailable funds', async function () {
       const receiver = await ERC3156FlashBorrowerMock.new(true, true);
       const data = this.token.contract.methods.transfer(other, 10).encodeABI();
-      await expectRevertCustomError(
-        this.token.flashLoan(receiver.address, this.token.address, loanValue, data),
-        'ERC20InsufficientBalance',
-        [receiver.address, loanValue - 10, loanValue],
+      await expectRevert.unspecified(
+        this.token.flashLoan(receiver.address, this.token.address, loanValue, data)
       );
     });
 

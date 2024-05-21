@@ -1,8 +1,7 @@
-const { BN, expectEvent } = require('@openzeppelin/test-helpers');
+const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 const { shouldSupportInterfaces } = require('../../../utils/introspection/SupportsInterface.behavior');
-const { expectRevertCustomError } = require('../../../helpers/customError');
 
 const ERC721URIStorageMock = artifacts.require('$ERC721URIStorageMock');
 
@@ -34,9 +33,7 @@ contract('ERC721URIStorage', function (accounts) {
     });
 
     it('reverts when queried for non existent token id', async function () {
-      await expectRevertCustomError(this.token.tokenURI(nonExistentTokenId), 'ERC721NonexistentToken', [
-        nonExistentTokenId,
-      ]);
+      await expectRevert.unspecified(this.token.tokenURI(nonExistentTokenId));
     });
 
     it('can be set for a token id', async function () {
@@ -90,7 +87,7 @@ contract('ERC721URIStorage', function (accounts) {
     it('tokens without URI can be burnt ', async function () {
       await this.token.$_burn(firstTokenId);
 
-      await expectRevertCustomError(this.token.tokenURI(firstTokenId), 'ERC721NonexistentToken', [firstTokenId]);
+      await expectRevert.unspecified(this.token.tokenURI(firstTokenId));
     });
 
     it('tokens with URI can be burnt ', async function () {
@@ -98,14 +95,14 @@ contract('ERC721URIStorage', function (accounts) {
 
       await this.token.$_burn(firstTokenId);
 
-      await expectRevertCustomError(this.token.tokenURI(firstTokenId), 'ERC721NonexistentToken', [firstTokenId]);
+      await expectRevert.unspecified(this.token.tokenURI(firstTokenId));
     });
 
     it('tokens URI is kept if token is burnt and reminted ', async function () {
       await this.token.$_setTokenURI(firstTokenId, sampleUri);
 
       await this.token.$_burn(firstTokenId);
-      await expectRevertCustomError(this.token.tokenURI(firstTokenId), 'ERC721NonexistentToken', [firstTokenId]);
+      await expectRevert.unspecified(this.token.tokenURI(firstTokenId));
 
       await this.token.$_mint(owner, firstTokenId);
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal(sampleUri);

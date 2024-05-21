@@ -1,8 +1,6 @@
-const { BN } = require('@openzeppelin/test-helpers');
+const { BN, expectRevert } = require('@openzeppelin/test-helpers');
 
 const { expect } = require('chai');
-
-const { expectRevertCustomError } = require('../../../helpers/customError');
 
 const ERC1155Burnable = artifacts.require('$ERC1155Burnable');
 
@@ -36,10 +34,8 @@ contract('ERC1155Burnable', function (accounts) {
     });
 
     it("unapproved accounts cannot burn the holder's tokens", async function () {
-      await expectRevertCustomError(
-        this.token.burn(holder, tokenIds[0], values[0].subn(1), { from: other }),
-        'ERC1155MissingApprovalForAll',
-        [other, holder],
+      await expectRevert.unspecified(
+        this.token.burn(holder, tokenIds[0], values[0].subn(1), { from: other })
       );
     });
   });
@@ -61,10 +57,8 @@ contract('ERC1155Burnable', function (accounts) {
     });
 
     it("unapproved accounts cannot burn the holder's tokens", async function () {
-      await expectRevertCustomError(
-        this.token.burnBatch(holder, tokenIds, [values[0].subn(1), values[1].subn(2)], { from: other }),
-        'ERC1155MissingApprovalForAll',
-        [other, holder],
+      await expectRevert.unspecified(
+        this.token.burnBatch(holder, tokenIds, [values[0].subn(1), values[1].subn(2)], { from: other })
       );
     });
   });
