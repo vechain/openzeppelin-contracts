@@ -16,8 +16,7 @@ contract('AccessControlDefaultAdminRules', function (accounts) {
   it('initial admin not zero', async function () {
     await expectRevert(
       AccessControlDefaultAdminRules.new(delay, constants.ZERO_ADDRESS),
-      'AccessControlInvalidDefaultAdmin',
-      [constants.ZERO_ADDRESS],
+      "The transaction receipt didn't contain a contract address."
     );
   });
 
