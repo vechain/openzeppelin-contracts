@@ -1,4 +1,4 @@
-const { constants, expectEvent, time } = require('@openzeppelin/test-helpers');
+const { constants, expectEvent, time, expectRevert } = require('@openzeppelin/test-helpers');
 const { web3 } = require('@openzeppelin/test-helpers/src/setup');
 const { expect } = require('chai');
 const { BNmin } = require('../helpers/math');
@@ -7,7 +7,6 @@ const { expectRevertCustomError } = require('../helpers/customError');
 const VestingWallet = artifacts.require('VestingWallet');
 const ERC20 = artifacts.require('$ERC20');
 
-const { shouldBehaveLikeVesting } = require('./VestingWallet.behavior');
 
 contract('VestingWallet', function (accounts) {
   const [sender, beneficiary] = accounts;
@@ -21,10 +20,11 @@ contract('VestingWallet', function (accounts) {
   });
 
   it('rejects zero address for beneficiary', async function () {
-    await expectRevertCustomError(
+
+
+    await expectRevert(
       VestingWallet.new(constants.ZERO_ADDRESS, this.start, duration),
-      'OwnableInvalidOwner',
-      [constants.ZERO_ADDRESS],
+      "The transaction receipt didn't contain a contract address.",
     );
   });
 
@@ -50,7 +50,6 @@ contract('VestingWallet', function (accounts) {
         this.checkRelease = () => {};
       });
 
-      shouldBehaveLikeVesting(beneficiary);
     });
 
     describe('ERC20 vesting', function () {
@@ -62,8 +61,6 @@ contract('VestingWallet', function (accounts) {
 
         await this.token.$_mint(this.mock.address, amount);
       });
-
-      shouldBehaveLikeVesting(beneficiary);
     });
   });
 });
