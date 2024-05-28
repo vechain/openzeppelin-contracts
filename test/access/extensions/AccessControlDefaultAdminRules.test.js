@@ -1,8 +1,9 @@
-const { time, constants, expectRevert } = require('@openzeppelin/test-helpers');
+const { time, constants } = require('@openzeppelin/test-helpers');
 const {
   shouldBehaveLikeAccessControl,
   shouldBehaveLikeAccessControlDefaultAdminRules,
 } = require('../AccessControl.behavior.js');
+const { expectThorRevert, expectRevertCheckStrategy } = require('../../helpers/errors.js');
 
 const AccessControlDefaultAdminRules = artifacts.require('$AccessControlDefaultAdminRules');
 
@@ -14,9 +15,10 @@ contract('AccessControlDefaultAdminRules', function (accounts) {
   });
 
   it('initial admin not zero', async function () {
-    await expectRevert(
+    await expectThorRevert(
       AccessControlDefaultAdminRules.new(delay, constants.ZERO_ADDRESS),
-      "The transaction receipt didn't contain a contract address."
+      '',
+      expectRevertCheckStrategy.unspecified,
     );
   });
 
