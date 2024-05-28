@@ -3,6 +3,7 @@ const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-hel
 const { ZERO_ADDRESS } = constants;
 
 const { expect } = require('chai');
+const { expectThorRevert, expectRevertCheckStrategy } = require('../helpers/errors');
 
 const Ownable = artifacts.require('$Ownable');
 
@@ -14,10 +15,7 @@ contract('Ownable', function (accounts) {
   });
 
   it('rejects zero address for initialOwner', async function () {
-    await expectRevert(
-      Ownable.new(constants.ZERO_ADDRESS), 
-      "The transaction receipt didn't contain a contract address."
-    );
+    await expectThorRevert(Ownable.new(constants.ZERO_ADDRESS), '', expectRevertCheckStrategy.unspecified);
   });
 
   it('has an owner', async function () {
@@ -33,15 +31,11 @@ contract('Ownable', function (accounts) {
     });
 
     it('prevents non-owners from transferring', async function () {
-      await expectRevert.unspecified(
-        this.ownable.transferOwnership(other, { from: other })
-      );
+      await expectRevert.unspecified(this.ownable.transferOwnership(other, { from: other }));
     });
 
     it('guards ownership against stuck state', async function () {
-      await expectRevert.unspecified(
-        this.ownable.transferOwnership(ZERO_ADDRESS, { from: owner })
-      );
+      await expectRevert.unspecified(this.ownable.transferOwnership(ZERO_ADDRESS, { from: owner }));
     });
   });
 
