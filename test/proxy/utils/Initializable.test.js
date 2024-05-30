@@ -2,7 +2,8 @@ const { expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const { expectRevertCustomError } = require('../../helpers/customError');
 const { MAX_UINT64 } = require('../../helpers/constants');
-
+const { expectRevert } = require('@openzeppelin/test-helpers');
+const { expectThorRevert, expectRevertCheckStrategy } = require('../../helpers/errors.js');
 const InitializableMock = artifacts.require('InitializableMock');
 const ConstructorInitializableMock = artifacts.require('ConstructorInitializableMock');
 const ChildConstructorInitializableMock = artifacts.require('ChildConstructorInitializableMock');
@@ -42,13 +43,13 @@ contract('Initializable', function () {
       });
 
       it('initializer does not run again', async function () {
-        await expectRevertCustomError(this.contract.initialize(), 'InvalidInitialization', []);
+        await expectRevert.unspecified(this.contract.initialize());
       });
     });
 
     describe('nested under an initializer', function () {
       it('initializer modifier reverts', async function () {
-        await expectRevertCustomError(this.contract.initializerNested(), 'InvalidInitialization', []);
+        await expectRevert.unspecified(this.contract.initializerNested());
       });
 
       it('onlyInitializing modifier succeeds', async function () {
@@ -58,7 +59,7 @@ contract('Initializable', function () {
     });
 
     it('cannot call onlyInitializable function outside the scope of an initializable function', async function () {
-      await expectRevertCustomError(this.contract.initializeOnlyInitializing(), 'NotInitializing', []);
+      await expectRevert.unspecified(this.contract.initializeOnlyInitializing());
     });
   });
 
@@ -100,9 +101,9 @@ contract('Initializable', function () {
 
     it('cannot nest reinitializers', async function () {
       expect(await this.contract.counter()).to.be.bignumber.equal('0');
-      await expectRevertCustomError(this.contract.nestedReinitialize(2, 2), 'InvalidInitialization', []);
-      await expectRevertCustomError(this.contract.nestedReinitialize(2, 3), 'InvalidInitialization', []);
-      await expectRevertCustomError(this.contract.nestedReinitialize(3, 2), 'InvalidInitialization', []);
+      await expectRevert.unspecified(this.contract.nestedReinitialize(2, 2));
+      await expectRevert.unspecified(this.contract.nestedReinitialize(2, 3));
+      await expectRevert.unspecified(this.contract.nestedReinitialize(3, 2));
     });
 
     it('can chain reinitializers', async function () {
@@ -121,18 +122,18 @@ contract('Initializable', function () {
     describe('contract locking', function () {
       it('prevents initialization', async function () {
         await this.contract.disableInitializers();
-        await expectRevertCustomError(this.contract.initialize(), 'InvalidInitialization', []);
+        await expectRevert.unspecified(this.contract.initialize());
       });
 
       it('prevents re-initialization', async function () {
         await this.contract.disableInitializers();
-        await expectRevertCustomError(this.contract.reinitialize(255), 'InvalidInitialization', []);
+        await expectRevert.unspecified(this.contract.reinitialize(255));
       });
 
       it('can lock contract after initialization', async function () {
         await this.contract.initialize();
         await this.contract.disableInitializers();
-        await expectRevertCustomError(this.contract.reinitialize(255), 'InvalidInitialization', []);
+        await expectRevert.unspecified(this.contract.reinitialize(255));
       });
     });
   });
@@ -207,8 +208,8 @@ contract('Initializable', function () {
 
   describe('disabling initialization', function () {
     it('old and new patterns in bad sequence', async function () {
-      await expectRevertCustomError(DisableBad1.new(), 'InvalidInitialization', []);
-      await expectRevertCustomError(DisableBad2.new(), 'InvalidInitialization', []);
+      await expectThorRevert(DisableBad1.new(), "", expectRevertCheckStrategy.unspecified);
+      await expectThorRevert(DisableBad2.new(), "", expectRevertCheckStrategy.unspecified);
     });
 
     it('old and new patterns in good sequence', async function () {

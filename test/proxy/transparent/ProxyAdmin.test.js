@@ -23,7 +23,7 @@ contract('ProxyAdmin', function (accounts) {
     const proxy = await TransparentUpgradeableProxy.new(this.implementationV1.address, proxyAdminOwner, initializeData);
 
     const proxyNonce = await web3.eth.getTransactionCount(proxy.address);
-    const proxyAdminAddress = computeCreateAddress(proxy.address, proxyNonce - 1); // Nonce already used
+    const proxyAdminAddress = computeCreateAddress(proxy.address, Math.max(0, proxyNonce - 1)); // Nonce already used
     this.proxyAdmin = await ProxyAdmin.at(proxyAdminAddress);
 
     this.proxy = await ITransparentUpgradeableProxy.at(proxy.address);
