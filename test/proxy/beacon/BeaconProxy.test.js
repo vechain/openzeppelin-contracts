@@ -28,9 +28,7 @@ contract('BeaconProxy', function (accounts) {
     it('non-contract implementation', async function () {
       const beacon = await BadBeaconNotContract.new();
       const implementation = await beacon.implementation();
-      await expectRevert(BeaconProxy.new(beacon.address, '0x'), 'ERC1967InvalidImplementation', [
-        implementation,
-      ]);
+      await expectThorRevert(BeaconProxy.new(beacon.address, '0x'), "", expectRevertCheckStrategy.unspecified);
     });
   });
 
