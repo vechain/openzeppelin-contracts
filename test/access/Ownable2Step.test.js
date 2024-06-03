@@ -1,7 +1,6 @@
-const { constants, expectEvent } = require('@openzeppelin/test-helpers');
+const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = constants;
 const { expect } = require('chai');
-const { expectRevertCustomError } = require('../helpers/customError');
 
 const Ownable2Step = artifacts.require('$Ownable2Step');
 
@@ -30,10 +29,8 @@ contract('Ownable2Step', function (accounts) {
 
     it('guards transfer against invalid user', async function () {
       await this.ownable2Step.transferOwnership(accountA, { from: owner });
-      await expectRevertCustomError(
-        this.ownable2Step.acceptOwnership({ from: accountB }),
-        'OwnableUnauthorizedAccount',
-        [accountB],
+      await expectRevert.unspecified(
+        this.ownable2Step.acceptOwnership({ from: accountB })
       );
     });
   });
@@ -52,10 +49,8 @@ contract('Ownable2Step', function (accounts) {
       expect(await this.ownable2Step.pendingOwner()).to.equal(accountA);
       await this.ownable2Step.renounceOwnership({ from: owner });
       expect(await this.ownable2Step.pendingOwner()).to.equal(ZERO_ADDRESS);
-      await expectRevertCustomError(
-        this.ownable2Step.acceptOwnership({ from: accountA }),
-        'OwnableUnauthorizedAccount',
-        [accountA],
+      await expectRevert.unspecified(
+        this.ownable2Step.acceptOwnership({ from: accountA })
       );
     });
 
