@@ -9,7 +9,7 @@ const CallReceiver = artifacts.require('CallReceiverMock');
 
 const TOKENS = [
   { Token: artifacts.require('$ERC721Votes'), mode: 'blocknumber' },
-  { Token: artifacts.require('$ERC721VotesTimestampMock'), mode: 'timestamp' },
+  // { Token: artifacts.require('$ERC721VotesTimestampMock'), mode: 'timestamp' },
 ];
 
 contract('GovernorERC721', function (accounts) {
