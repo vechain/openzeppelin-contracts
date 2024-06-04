@@ -1,7 +1,5 @@
 const { expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-
-const { expectRevertCustomError } = require('../../helpers/customError');
 const { expectThorRevert, expectRevertCheckStrategy } = require('../../helpers/errors.js');
 const UpgradeableBeacon = artifacts.require('UpgradeableBeacon');
 const Implementation1 = artifacts.require('Implementation1');

@@ -1,7 +1,4 @@
-const { expectRevert } = require('@openzeppelin/test-helpers');
 const { getSlot, BeaconSlot } = require('../../helpers/erc1967');
-
-const { expectRevertCustomError } = require('../../helpers/customError');
 const { expectThorRevert, expectRevertCheckStrategy } = require('../../helpers/errors.js');
 const { expect } = require('chai');
 

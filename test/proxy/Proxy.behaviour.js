@@ -1,8 +1,4 @@
-const { expectRevert } = require('@openzeppelin/test-helpers');
-const { getSlot, ImplementationSlot } = require('../helpers/erc1967');
-
 const { expect } = require('chai');
-const { expectRevertCustomError } = require('../helpers/customError');
 const { expectThorRevert, expectRevertCheckStrategy } = require('../helpers/errors.js');
 const DummyImplementation = artifacts.require('DummyImplementation');
 

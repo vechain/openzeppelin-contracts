@@ -1,7 +1,5 @@
 const { expectRevert } = require('@openzeppelin/test-helpers');
-
 const { expect } = require('chai');
-
 const DummyImplementation = artifacts.require('DummyImplementation');
 
 module.exports = function shouldBehaveLikeClone(createClone) {
