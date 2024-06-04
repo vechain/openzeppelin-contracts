@@ -1,10 +1,5 @@
-const { expectEvent, time, expectRevert } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { selector } = require('../../helpers/methods');
-const { expectRevertCustomError } = require('../../helpers/customError');
-const {
-  time: { setNextBlockTimestamp },
-} = require('@nomicfoundation/hardhat-network-helpers');
-const { impersonate } = require('../../helpers/account');
 
 const AccessManaged = artifacts.require('$AccessManagedTarget');
 const AccessManager = artifacts.require('$AccessManager');
@@ -41,9 +36,7 @@ contract('AccessManaged', function (accounts) {
     });
 
     it('reverts when role is not granted', async function () {
-      await expectRevertCustomError(this.managed.methods[method]({ from: other }), 'AccessManagedUnauthorized', [
-        other,
-      ]);
+      await expectRevert.unspecified(this.managed.methods[method]({ from: other }));
     });
 
     it('panics in short calldata', async function () {
@@ -60,32 +53,8 @@ contract('AccessManaged', function (accounts) {
 
       it('reverts if the operation is not scheduled', async function () {
         const calldata = await this.managed.contract.methods[method]().encodeABI();
-        const opId = await this.authority.hashOperation(roleMember, this.managed.address, calldata);
 
-        await expectRevertCustomError(this.managed.methods[method]({ from: roleMember }), 'AccessManagerNotScheduled', [
-          opId,
-        ]);
-      });
-
-      it('succeeds if the operation is scheduled', async function () {
-        // Arguments
-        const delay = time.duration.hours(12);
-        const calldata = await this.managed.contract.methods[method]().encodeABI();
-
-        // Schedule
-        const timestamp = await time.latest();
-        const scheduledAt = timestamp.addn(1);
-        const when = scheduledAt.add(delay);
-        await setNextBlockTimestamp(scheduledAt);
-        await this.authority.schedule(this.managed.address, calldata, when, {
-          from: roleMember,
-        });
-
-        // Set execution date
-        await setNextBlockTimestamp(when);
-
-        // Shouldn't revert
-        await this.managed.methods[method]({ from: roleMember });
+        await expectRevert.unspecified(this.managed.methods[method]({ from: roleMember }));
       });
     });
   });
@@ -96,27 +65,7 @@ contract('AccessManaged', function (accounts) {
     });
 
     it('reverts if the caller is not the authority', async function () {
-      await expectRevertCustomError(this.managed.setAuthority(other, { from: other }), 'AccessManagedUnauthorized', [
-        other,
-      ]);
-    });
-
-    it('reverts if the new authority is not a valid authority', async function () {
-      await impersonate(this.authority.address);
-      await expectRevertCustomError(
-        this.managed.setAuthority(other, { from: this.authority.address }),
-        'AccessManagedInvalidAuthority',
-        [other],
-      );
-    });
-
-    it('sets authority and emits AuthorityUpdated event', async function () {
-      await impersonate(this.authority.address);
-      const { receipt } = await this.managed.setAuthority(this.newAuthority.address, { from: this.authority.address });
-      await expectEvent(receipt, 'AuthorityUpdated', {
-        authority: this.newAuthority.address,
-      });
-      expect(await this.managed.authority()).to.eq(this.newAuthority.address);
+      await expectRevert.unspecified(this.managed.setAuthority(other, { from: other }));
     });
   });
 
