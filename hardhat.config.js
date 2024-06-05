@@ -117,7 +117,6 @@ module.exports = {
         mnemonic: "denial kitchen pet squirrel other broom bar gas better priority spoil cross",
         count: 10,
       },
-      restful: true,
       gas: 50000000
     },
   },
