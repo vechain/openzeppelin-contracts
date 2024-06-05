@@ -2,7 +2,6 @@ const { constants, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const { clockFromReceipt } = require('../../helpers/time');
 const { BNsum } = require('../../helpers/math');
-const { expectRevertCustomError } = require('../../helpers/customError');
 
 require('array.prototype.at/auto');
 

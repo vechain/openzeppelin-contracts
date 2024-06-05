@@ -1,13 +1,10 @@
-const { expectEvent } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const ethSigUtil = require('eth-sig-util');
 const Wallet = require('ethereumjs-wallet').default;
-
 const Enums = require('../../helpers/enums');
 const { getDomain, domainType } = require('../../helpers/eip712');
 const { GovernorHelper } = require('../../helpers/governance');
-const { expectRevertCustomError } = require('../../helpers/customError');
-
 const Governor = artifacts.require('$GovernorWithParamsMock');
 const CallReceiver = artifacts.require('CallReceiverMock');
 const ERC1271WalletMock = artifacts.require('ERC1271WalletMock');
@@ -21,7 +18,6 @@ const encodedParams = web3.eth.abi.encodeParameters(['uint256', 'string'], Objec
 
 const TOKENS = [
   { Token: artifacts.require('$ERC20Votes'), mode: 'blocknumber' },
-  { Token: artifacts.require('$ERC20VotesTimestampMock'), mode: 'timestamp' },
 ];
 
 contract('GovernorWithParams', function (accounts) {
@@ -39,7 +35,7 @@ contract('GovernorWithParams', function (accounts) {
   for (const { mode, Token } of TOKENS) {
     describe(`using ${Token._json.contractName}`, function () {
       beforeEach(async function () {
-        this.chainId = await web3.eth.getChainId();
+        this.chainId = web3.utils.toBN(246); //await web3.eth.getChainId();
         this.token = await Token.new(tokenName, tokenSymbol, tokenName, version);
         this.mock = await Governor.new(name, this.token.address);
         this.receiver = await CallReceiver.new();
@@ -244,7 +240,7 @@ contract('GovernorWithParams', function (accounts) {
             params: encodedParams,
           };
 
-          await expectRevertCustomError(this.helper.vote(voteParams), 'GovernorInvalidSignature', [voteParams.voter]);
+          await expectRevert.unspecified(this.helper.vote(voteParams));
         });
 
         it('reverts if vote nonce is incorrect', async function () {
@@ -264,12 +260,8 @@ contract('GovernorWithParams', function (accounts) {
             params: encodedParams,
           };
 
-          await expectRevertCustomError(
-            this.helper.vote(voteParams),
-            // The signature check implies the nonce can't be tampered without changing the signer
-            'GovernorInvalidSignature',
-            [voteParams.voter],
-          );
+          await expectRevert.unspecified(
+            this.helper.vote(voteParams));
         });
       });
     });

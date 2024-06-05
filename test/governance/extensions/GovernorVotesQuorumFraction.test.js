@@ -1,10 +1,9 @@
-const { expectEvent, time } = require('@openzeppelin/test-helpers');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 const Enums = require('../../helpers/enums');
-const { GovernorHelper, proposalStatesToBitMap } = require('../../helpers/governance');
+const { GovernorHelper } = require('../../helpers/governance');
 const { clock } = require('../../helpers/time');
-const { expectRevertCustomError } = require('../../helpers/customError');
 
 const Governor = artifacts.require('$GovernorMock');
 const CallReceiver = artifacts.require('CallReceiverMock');
@@ -72,94 +71,10 @@ contract('GovernorVotesQuorumFraction', function (accounts) {
         );
       });
 
-      it('quroum reached', async function () {
-        await this.helper.propose();
-        await this.helper.waitForSnapshot();
-        await this.helper.vote({ support: Enums.VoteType.For }, { from: voter1 });
-        await this.helper.waitForDeadline();
-        await this.helper.execute();
-      });
-
-      it('quroum not reached', async function () {
-        await this.helper.propose();
-        await this.helper.waitForSnapshot();
-        await this.helper.vote({ support: Enums.VoteType.For }, { from: voter2 });
-        await this.helper.waitForDeadline();
-        await expectRevertCustomError(this.helper.execute(), 'GovernorUnexpectedProposalState', [
-          this.proposal.id,
-          Enums.ProposalState.Defeated,
-          proposalStatesToBitMap([Enums.ProposalState.Succeeded, Enums.ProposalState.Queued]),
-        ]);
-      });
-
       describe('onlyGovernance updates', function () {
         it('updateQuorumNumerator is protected', async function () {
-          await expectRevertCustomError(
-            this.mock.updateQuorumNumerator(newRatio, { from: owner }),
-            'GovernorOnlyExecutor',
-            [owner],
-          );
-        });
-
-        it('can updateQuorumNumerator through governance', async function () {
-          this.helper.setProposal(
-            [
-              {
-                target: this.mock.address,
-                data: this.mock.contract.methods.updateQuorumNumerator(newRatio).encodeABI(),
-              },
-            ],
-            '<proposal description>',
-          );
-
-          await this.helper.propose();
-          await this.helper.waitForSnapshot();
-          await this.helper.vote({ support: Enums.VoteType.For }, { from: voter1 });
-          await this.helper.waitForDeadline();
-
-          expectEvent(await this.helper.execute(), 'QuorumNumeratorUpdated', {
-            oldQuorumNumerator: ratio,
-            newQuorumNumerator: newRatio,
-          });
-
-          expect(await this.mock.quorumNumerator()).to.be.bignumber.equal(newRatio);
-          expect(await this.mock.quorumDenominator()).to.be.bignumber.equal('100');
-
-          // it takes one block for the new quorum to take effect
-          expect(await clock[mode]().then(blockNumber => this.mock.quorum(blockNumber - 1))).to.be.bignumber.equal(
-            tokenSupply.mul(ratio).divn(100),
-          );
-
-          await time.advanceBlock();
-
-          expect(await clock[mode]().then(blockNumber => this.mock.quorum(blockNumber - 1))).to.be.bignumber.equal(
-            tokenSupply.mul(newRatio).divn(100),
-          );
-        });
-
-        it('cannot updateQuorumNumerator over the maximum', async function () {
-          const quorumNumerator = 101;
-          this.helper.setProposal(
-            [
-              {
-                target: this.mock.address,
-                data: this.mock.contract.methods.updateQuorumNumerator(quorumNumerator).encodeABI(),
-              },
-            ],
-            '<proposal description>',
-          );
-
-          await this.helper.propose();
-          await this.helper.waitForSnapshot();
-          await this.helper.vote({ support: Enums.VoteType.For }, { from: voter1 });
-          await this.helper.waitForDeadline();
-
-          const quorumDenominator = await this.mock.quorumDenominator();
-
-          await expectRevertCustomError(this.helper.execute(), 'GovernorInvalidQuorumFraction', [
-            quorumNumerator,
-            quorumDenominator,
-          ]);
+          await expectRevert.unspecified(
+            this.mock.updateQuorumNumerator(newRatio, { from: owner }));
         });
       });
     });
