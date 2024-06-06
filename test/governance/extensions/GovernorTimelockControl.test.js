@@ -3,8 +3,6 @@ const { expect } = require('chai');
 
 const Enums = require('../../helpers/enums');
 const { GovernorHelper, proposalStatesToBitMap, timelockSalt } = require('../../helpers/governance');
-const { expectRevertCustomError } = require('../../helpers/customError');
-const { clockFromReceipt } = require('../../helpers/time');
 
 const Timelock = artifacts.require('TimelockController');
 const Governor = artifacts.require('$GovernorTimelockControlMock');
@@ -14,7 +12,6 @@ const ERC1155 = artifacts.require('$ERC1155');
 
 const TOKENS = [
   { Token: artifacts.require('$ERC20Votes'), mode: 'blocknumber' },
-  // { Token: artifacts.require('$ERC20VotesTimestampMock'), mode: 'timestamp' },
 ];
 
 contract('GovernorTimelockControl', function (accounts) {
