@@ -1,7 +1,5 @@
 const { expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-
-const Enums = require('../../helpers/enums');
 const { GovernorHelper } = require('../../helpers/governance');
 const { clock } = require('../../helpers/time');
 

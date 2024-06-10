@@ -36,7 +36,7 @@ contract('Governor', function (accounts) {
   for (const { mode, Token } of TOKENS) {
     describe(`using ${Token._json.contractName}`, function () {
       beforeEach(async function () {
-        // this.chainId = await web3.eth.getChainId();
+        this.chainId = web3.utils.toBN(246);
         try {
           this.token = await Token.new(tokenName, tokenSymbol, tokenName, version);
         } catch {

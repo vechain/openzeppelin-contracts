@@ -1,6 +1,5 @@
 const { constants, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-const Enums = require('../../helpers/enums');
 const { GovernorHelper, timelockSalt } = require('../../helpers/governance');
 
 const Timelock = artifacts.require('TimelockController');
