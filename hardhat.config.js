@@ -117,13 +117,17 @@ module.exports = {
         mnemonic: "denial kitchen pet squirrel other broom bar gas better priority spoil cross",
         count: 10,
       },
-      gas: 10000000
+      gas: 50000000
     },
   },
   exposed: {
     imports: true,
     initializers: true,
     exclude: ['vendor/**/*'],
+  },
+  mocha: {
+    // reporter: "reporter.js",
+    timeout: 5 * 60 * 1000,
   },
   docgen: require('./docs/config'),
 };

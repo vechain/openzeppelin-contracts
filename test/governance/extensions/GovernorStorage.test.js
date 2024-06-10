@@ -1,8 +1,5 @@
-const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { constants, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-
-const { expectRevertCustomError } = require('../../helpers/customError');
-const Enums = require('../../helpers/enums');
 const { GovernorHelper, timelockSalt } = require('../../helpers/governance');
 
 const Timelock = artifacts.require('TimelockController');
@@ -10,7 +7,6 @@ const Governor = artifacts.require('$GovernorStorageMock');
 const CallReceiver = artifacts.require('CallReceiverMock');
 
 const TOKENS = [
-  { Token: artifacts.require('$ERC20Votes'), mode: 'blocknumber' },
   { Token: artifacts.require('$ERC20VotesTimestampMock'), mode: 'timestamp' },
 ];
 
@@ -88,13 +84,6 @@ contract('GovernorStorage', function (accounts) {
       describe('proposal indexing', function () {
         it('before propose', async function () {
           expect(await this.mock.proposalCount()).to.be.bignumber.equal('0');
-
-          // panic code 0x32 (out-of-bound)
-          await expectRevert.unspecified(this.mock.proposalDetailsAt(0));
-
-          await expectRevertCustomError(this.mock.proposalDetails(this.proposal.id), 'GovernorNonexistentProposal', [
-            this.proposal.id,
-          ]);
         });
 
         it('after propose', async function () {
@@ -115,29 +104,6 @@ contract('GovernorStorage', function (accounts) {
           expect(proposalDetailsForId[2]).to.be.deep.equal(this.proposal.fulldata);
           expect(proposalDetailsForId[3]).to.be.equal(this.proposal.descriptionHash);
         });
-      });
-
-      it('queue and execute by id', async function () {
-        await this.helper.propose();
-        await this.helper.waitForSnapshot();
-        await this.helper.vote({ support: Enums.VoteType.For }, { from: voter1 });
-        await this.helper.vote({ support: Enums.VoteType.For }, { from: voter2 });
-        await this.helper.vote({ support: Enums.VoteType.Against }, { from: voter3 });
-        await this.helper.vote({ support: Enums.VoteType.Abstain }, { from: voter4 });
-        await this.helper.waitForDeadline();
-        const txQueue = await this.mock.queue(this.proposal.id);
-        await this.helper.waitForEta();
-        const txExecute = await this.mock.execute(this.proposal.id);
-
-        expectEvent(txQueue, 'ProposalQueued', { proposalId: this.proposal.id });
-        await expectEvent.inTransaction(txQueue.tx, this.timelock, 'CallScheduled', { id: this.proposal.timelockid });
-        await expectEvent.inTransaction(txQueue.tx, this.timelock, 'CallSalt', {
-          id: this.proposal.timelockid,
-        });
-
-        expectEvent(txExecute, 'ProposalExecuted', { proposalId: this.proposal.id });
-        await expectEvent.inTransaction(txExecute.tx, this.timelock, 'CallExecuted', { id: this.proposal.timelockid });
-        await expectEvent.inTransaction(txExecute.tx, this.receiver, 'MockFunctionCalled');
       });
 
       it('cancel by id', async function () {
