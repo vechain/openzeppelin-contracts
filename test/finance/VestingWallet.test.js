@@ -1,8 +1,7 @@
-const { constants, expectEvent, time, expectRevert } = require('@openzeppelin/test-helpers');
+const { constants, expectEvent, time } = require('@openzeppelin/test-helpers');
 const { web3 } = require('@openzeppelin/test-helpers/src/setup');
 const { expect } = require('chai');
 const { BNmin } = require('../helpers/math');
-const { expectRevertCustomError } = require('../helpers/customError');
 const { expectThorRevert, expectRevertCheckStrategy } = require('../helpers/errors.js');
 const VestingWallet = artifacts.require('VestingWallet');
 const ERC20 = artifacts.require('$ERC20');
