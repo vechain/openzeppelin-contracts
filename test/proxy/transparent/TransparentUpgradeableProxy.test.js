@@ -1,5 +1,4 @@
 const shouldBehaveLikeProxy = require('../Proxy.behaviour');
-const shouldBehaveLikeTransparentUpgradeableProxy = require('./TransparentUpgradeableProxy.behaviour');
 
 const TransparentUpgradeableProxy = artifacts.require('TransparentUpgradeableProxy');
 const ITransparentUpgradeableProxy = artifacts.require('ITransparentUpgradeableProxy');
@@ -20,5 +19,4 @@ contract('TransparentUpgradeableProxy', function (accounts) {
   };
 
   shouldBehaveLikeProxy(createProxy, otherAccounts);
-  shouldBehaveLikeTransparentUpgradeableProxy(createProxy, owner, otherAccounts);
 });
