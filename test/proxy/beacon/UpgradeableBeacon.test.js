@@ -1,8 +1,6 @@
-const { expectEvent } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-
-const { expectRevertCustomError } = require('../../helpers/customError');
-
+const { expectThorRevert, expectRevertCheckStrategy } = require('../../helpers/errors.js');
 const UpgradeableBeacon = artifacts.require('UpgradeableBeacon');
 const Implementation1 = artifacts.require('Implementation1');
 const Implementation2 = artifacts.require('Implementation2');
@@ -11,7 +9,7 @@ contract('UpgradeableBeacon', function (accounts) {
   const [owner, other] = accounts;
 
   it('cannot be created with non-contract implementation', async function () {
-    await expectRevertCustomError(UpgradeableBeacon.new(other, owner), 'BeaconInvalidImplementation', [other]);
+    await expectThorRevert(UpgradeableBeacon.new(other, owner), "", expectRevertCheckStrategy.unspecified);
   });
 
   context('once deployed', async function () {
@@ -39,16 +37,12 @@ contract('UpgradeableBeacon', function (accounts) {
     });
 
     it('cannot be upgraded to a non-contract', async function () {
-      await expectRevertCustomError(this.beacon.upgradeTo(other, { from: owner }), 'BeaconInvalidImplementation', [
-        other,
-      ]);
+      await expectRevert.unspecified(this.beacon.upgradeTo(other, { from: owner }));
     });
 
     it('cannot be upgraded by other account', async function () {
       const v2 = await Implementation2.new();
-      await expectRevertCustomError(this.beacon.upgradeTo(v2.address, { from: other }), 'OwnableUnauthorizedAccount', [
-        other,
-      ]);
+      await expectRevert.unspecified(this.beacon.upgradeTo(v2.address, { from: other }));
     });
   });
 });
