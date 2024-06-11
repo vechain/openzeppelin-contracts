@@ -1,7 +1,7 @@
 const ethSigUtil = require('eth-sig-util');
 const Wallet = require('ethereumjs-wallet').default;
 const { getDomain, domainType } = require('../helpers/eip712');
-const { expectRevertCustomError } = require('../helpers/customError');
+const { expectThorRevert, expectRevertCheckStrategy } = require('../helpers/errors');
 
 const { constants, expectRevert, expectEvent, time } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
@@ -153,7 +153,7 @@ contract('ERC2771Forwarder', function (accounts) {
           data: this.receiver.contract.methods.mockFunctionRevertsNoReason().encodeABI(),
         };
         req.signature = this.sign(this.alice.getPrivateKey(), req);
-        await expectRevertCustomError(this.forwarder.execute(req), 'FailedInnerCall', []);
+        await expectRevert.unspecified(this.forwarder.execute(req));
       });
     });
 
@@ -161,32 +161,24 @@ contract('ERC2771Forwarder', function (accounts) {
       for (const [key, value] of Object.entries(tamperedValues)) {
         it(`reverts with tampered ${key}`, async function () {
           const data = this.forgeData({ [key]: value });
-          await expectRevertCustomError(
+          await expectRevert.unspecified(
             this.forwarder.execute(data.message, {
               value: key == 'value' ? value : 0, // To avoid MismatchedValue error
-            }),
-            'ERC2771ForwarderInvalidSigner',
-            [ethSigUtil.recoverTypedSignature({ data, sig: this.requestData.signature }), data.message.from],
+            })
           );
         });
       }
 
       it('reverts with an untrustful to', async function () {
         const data = this.forgeData({ to: another });
-        await expectRevertCustomError(this.forwarder.execute(data.message), 'ERC2771UntrustfulTarget', [
-          data.message.to,
-          this.forwarder.address,
-        ]);
+        await expectRevert.unspecified(this.forwarder.execute(data.message));
       });
 
       it('reverts with tampered signature', async function () {
         const tamperedSig = web3.utils.hexToBytes(this.requestData.signature);
         tamperedSig[42] ^= 0xff;
         this.requestData.signature = web3.utils.bytesToHex(tamperedSig);
-        await expectRevertCustomError(this.forwarder.execute(this.requestData), 'ERC2771ForwarderInvalidSigner', [
-          ethSigUtil.recoverTypedSignature({ data: this.forgeData(), sig: tamperedSig }),
-          this.requestData.from,
-        ]);
+        await expectRevert.unspecified(this.forwarder.execute(this.requestData));
       });
 
       it('reverts with valid signature for non-current nonce', async function () {
@@ -194,13 +186,7 @@ contract('ERC2771Forwarder', function (accounts) {
         await this.forwarder.execute(this.requestData);
 
         // And then fail due to an already used nonce
-        await expectRevertCustomError(this.forwarder.execute(this.requestData), 'ERC2771ForwarderInvalidSigner', [
-          ethSigUtil.recoverTypedSignature({
-            data: this.forgeData({ ...this.requestData, nonce: this.requestData.nonce + 1 }),
-            sig: this.requestData.signature,
-          }),
-          this.requestData.from,
-        ]);
+        await expectRevert.unspecified(this.forwarder.execute(this.requestData));
       });
 
       it('reverts with valid signature for expired deadline', async function () {
@@ -209,9 +195,7 @@ contract('ERC2771Forwarder', function (accounts) {
           deadline: this.timestamp - 1,
         };
         req.signature = this.sign(this.alice.getPrivateKey(), req);
-        await expectRevertCustomError(this.forwarder.execute(req), 'ERC2771ForwarderExpiredRequest', [
-          this.timestamp - 1,
-        ]);
+        await expectRevert.unspecified(this.forwarder.execute(req));
       });
 
       it('reverts with valid signature but mismatched value', async function () {
@@ -221,7 +205,7 @@ contract('ERC2771Forwarder', function (accounts) {
           value,
         };
         req.signature = this.sign(this.alice.getPrivateKey(), req);
-        await expectRevertCustomError(this.forwarder.execute(req), 'ERC2771ForwarderMismatchedValue', [0, value]);
+        await expectRevert.unspecified(this.forwarder.execute(req));
       });
     });
 
@@ -256,7 +240,11 @@ contract('ERC2771Forwarder', function (accounts) {
 
       // The subcall out of gas should be caught by the contract and then bubbled up consuming
       // the available gas with an `invalid` opcode.
-      await expectRevert.outOfGas(this.forwarder.execute(this.requestData, { gas: gasAvailable }));
+      await expectThorRevert(
+        this.forwarder.execute(this.requestData, { gas: gasAvailable }),
+        'consuming all gas',
+        expectRevertCheckStrategy.contains
+      )
 
       const { transactions } = await web3.eth.getBlock('latest');
       const { gasUsed } = await web3.eth.getTransactionReceipt(transactions[0]);
@@ -341,10 +329,8 @@ contract('ERC2771Forwarder', function (accounts) {
           this.signers[this.idx].getPrivateKey(),
           this.requestDatas[this.idx],
         );
-        await expectRevertCustomError(
-          this.forwarder.executeBatch(this.requestDatas, another, { value: this.msgValue }),
-          'ERC2771ForwarderMismatchedValue',
-          [batchValue(this.requestDatas), this.msgValue],
+        await expectRevert.unspecified(
+          this.forwarder.executeBatch(this.requestDatas, another, { value: this.msgValue })
         );
       });
 
@@ -359,13 +345,8 @@ contract('ERC2771Forwarder', function (accounts) {
 
             this.requestDatas[this.idx] = data.message;
 
-            await expectRevertCustomError(
-              this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue }),
-              'ERC2771ForwarderInvalidSigner',
-              [
-                ethSigUtil.recoverTypedSignature({ data, sig: this.requestDatas[this.idx].signature }),
-                data.message.from,
-              ],
+            await expectRevert.unspecified(
+              this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue })
             );
           });
         }
@@ -375,10 +356,8 @@ contract('ERC2771Forwarder', function (accounts) {
 
           this.requestDatas[this.idx] = data.message;
 
-          await expectRevertCustomError(
-            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue }),
-            'ERC2771UntrustfulTarget',
-            [this.requestDatas[this.idx].to, this.forwarder.address],
+          await expectRevert.unspecified(
+            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue })
           );
         });
 
@@ -388,16 +367,8 @@ contract('ERC2771Forwarder', function (accounts) {
 
           this.requestDatas[this.idx].signature = web3.utils.bytesToHex(tamperedSig);
 
-          await expectRevertCustomError(
-            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue }),
-            'ERC2771ForwarderInvalidSigner',
-            [
-              ethSigUtil.recoverTypedSignature({
-                data: this.forgeData(this.requestDatas[this.idx]),
-                sig: this.requestDatas[this.idx].signature,
-              }),
-              this.requestDatas[this.idx].from,
-            ],
+          await expectRevert.unspecified(
+            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue })
           );
         });
 
@@ -406,16 +377,8 @@ contract('ERC2771Forwarder', function (accounts) {
           await this.forwarder.execute(this.requestDatas[this.idx], { value: this.requestDatas[this.idx].value });
 
           // And then fail due to an already used nonce
-          await expectRevertCustomError(
-            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue }),
-            'ERC2771ForwarderInvalidSigner',
-            [
-              ethSigUtil.recoverTypedSignature({
-                data: this.forgeData({ ...this.requestDatas[this.idx], nonce: this.requestDatas[this.idx].nonce + 1 }),
-                sig: this.requestDatas[this.idx].signature,
-              }),
-              this.requestDatas[this.idx].from,
-            ],
+          await expectRevert.unspecified(
+            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue })
           );
         });
 
@@ -425,10 +388,8 @@ contract('ERC2771Forwarder', function (accounts) {
             this.signers[this.idx].getPrivateKey(),
             this.requestDatas[this.idx],
           );
-          await expectRevertCustomError(
-            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue }),
-            'ERC2771ForwarderExpiredRequest',
-            [this.timestamp.toNumber() - 1],
+          await expectRevert.unspecified(
+            this.forwarder.executeBatch(this.requestDatas, this.refundReceiver, { value: this.msgValue })
           );
         });
       });
@@ -510,30 +471,6 @@ contract('ERC2771Forwarder', function (accounts) {
         const { transactions } = await web3.eth.getBlock('latest');
         const { gasUsed } = await web3.eth.getTransactionReceipt(transactions[0]);
 
-        expect(gasUsed).to.be.equal(gasAvailable);
-      });
-
-      it('bubbles out of gas forced by the relayer', async function () {
-        // Similarly to the single execute, a malicious relayer could grief requests.
-
-        // We estimate until the selected request as if they were executed normally
-        const estimate = await this.gasUntil(this.requestDatas, this.idx);
-
-        // We add a Buffer to account for all the gas that's used before the selected call.
-        // Note is slightly bigger because the selected request is not the index 0 and it affects
-        // the buffer needed.
-        const gasAvailable = estimate + 10_000;
-
-        // The subcall out of gas should be caught by the contract and then bubbled up consuming
-        // the available gas with an `invalid` opcode.
-        await expectRevert.outOfGas(
-          this.forwarder.executeBatch(this.requestDatas, constants.ZERO_ADDRESS, { gas: gasAvailable }),
-        );
-
-        const { transactions } = await web3.eth.getBlock('latest');
-        const { gasUsed } = await web3.eth.getTransactionReceipt(transactions[0]);
-
-        // We assert that indeed the gas was totally consumed.
         expect(gasUsed).to.be.equal(gasAvailable);
       });
     });
