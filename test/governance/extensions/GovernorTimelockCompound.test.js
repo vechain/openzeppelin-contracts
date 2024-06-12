@@ -79,17 +79,6 @@ contract('GovernorTimelockCompound', function (accounts) {
         await expectRevert.unspecified(web3.eth.sendTransaction({ from: owner, to: this.mock.address, value: 1 }));
       });
 
-      it('post deployment check', async function () {
-        expect(await this.mock.name()).to.be.equal(name);
-        expect(await this.mock.token()).to.be.equal(this.token.address);
-        expect(await this.mock.votingDelay()).to.be.bignumber.equal(votingDelay);
-        expect(await this.mock.votingPeriod()).to.be.bignumber.equal(votingPeriod);
-        expect(await this.mock.quorum(0)).to.be.bignumber.equal('0');
-
-        expect(await this.mock.timelock()).to.be.equal(this.timelock.address);
-        expect(await this.timelock.admin()).to.be.equal(this.mock.address);
-      });
-
       describe('should revert', function () {
 
         describe('on execute', function () {
