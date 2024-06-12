@@ -1,6 +1,9 @@
 const { getSlot, BeaconSlot } = require('../../helpers/erc1967');
 const { expectThorRevert, expectRevertCheckStrategy } = require('../../helpers/errors.js');
-const { expect } = require('chai');
+const chai = require('chai');
+const { expect } = chai;
+const BN = require('bn.js');
+chai.use(require('chai-bn')(BN)); // init chai-bn
 
 const UpgradeableBeacon = artifacts.require('UpgradeableBeacon');
 const BeaconProxy = artifacts.require('BeaconProxy');
