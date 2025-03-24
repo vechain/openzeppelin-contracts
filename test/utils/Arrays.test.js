@@ -114,8 +114,15 @@ contract('Arrays', function () {
       it(type, async function () {
         const contract = await artifact.new(elements);
 
+        let expected;
         for (const i in elements) {
-          expect(await contract.unsafeAccess(i)).to.be.bignumber.equal(elements[i]);
+          if (type === 'uint256') {
+            expected = web3.utils.toBN(elements[i]);
+          }
+          else {
+            expected = elements[i];
+          }
+          expect(await contract.unsafeAccess(i)).to.be.bignumber.equal(expected);
         }
       });
     }
