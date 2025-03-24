@@ -25,7 +25,7 @@
     "release": "scripts/release/release.sh",
     "version": "scripts/release/version.sh",
     "test": "hardhat test",
-    "test:solo": "hardhat test --network vechain",
+    "test:solo": "env COMPILE_MODE=\"production\" hardhat test --network vechain",
     "test:solo:dir": "sh -c 'DIR=\"$1\"; find \"$DIR\" -type f -name \"*test.js\" -exec sh -c \"npm run test:solo {}\" \\;' _",
     "test:inheritance": "scripts/checks/inheritance-ordering.js artifacts/build-info/*",
     "test:generation": "scripts/checks/generation.sh",
