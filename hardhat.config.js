@@ -119,6 +119,17 @@ module.exports = {
       },
       gas: 50000000,
     },
+    vechain_galactica_testnet: {
+      url: "https://galactica.dev.node.vechain.org",
+      accounts: {
+        mnemonic:
+            'denial kitchen pet squirrel other broom bar gas better priority spoil cross',
+        path: "m/44'/818'/0'/0",
+        count: 3,
+        initialIndex: 0,
+        passphrase: 'vechainthor'
+      }
+    },
   },
   exposed: {
     imports: true,
