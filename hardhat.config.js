@@ -68,6 +68,11 @@ require('hardhat-exposed');
 require('solidity-docgen');
 argv.foundry && require('@nomicfoundation/hardhat-foundry');
 
+const dotenv = require('dotenv');
+if (dotenv) {
+  dotenv.config();
+}
+
 if (argv.foundry && argv.coverage) {
   throw Error('Coverage analysis is incompatible with Foundry. Disable with `FOUNDRY=false` in the environment');
 }
@@ -122,9 +127,9 @@ module.exports = {
       url: "https://galactica.dev.node.vechain.org",
       accounts: {
         mnemonic:
-            'denial kitchen pet squirrel other broom bar gas better priority spoil cross',
+            process.env.GALACTICA_DEVNET_MNEMONIC,
         path: "m/44'/818'/0'/0",
-        count: 3,
+        count: 5,
         initialIndex: 0,
         passphrase: 'vechainthor'
       },
