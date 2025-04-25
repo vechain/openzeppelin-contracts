@@ -69,9 +69,7 @@ require('solidity-docgen');
 argv.foundry && require('@nomicfoundation/hardhat-foundry');
 
 const dotenv = require('dotenv');
-if (dotenv) {
-  dotenv.config();
-}
+dotenv.config();
 
 if (argv.foundry && argv.coverage) {
   throw Error('Coverage analysis is incompatible with Foundry. Disable with `FOUNDRY=false` in the environment');
