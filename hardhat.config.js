@@ -6,8 +6,7 @@
 // - COMPILE_VERSION:   compiler version (default: 0.8.20)
 // - COINMARKETCAP:     coinmarkercat api key for USD value in gas report
 
-require("@vechain/hardhat-vechain");
-require("@vechain/hardhat-web3");
+require("@vechain/sdk-hardhat-plugin");
 
 const fs = require('fs');
 const path = require('path');
@@ -128,7 +127,7 @@ module.exports = {
         count: 3,
         initialIndex: 0,
         passphrase: 'vechainthor'
-      }
+      },
     },
   },
   exposed: {

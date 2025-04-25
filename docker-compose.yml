@@ -5,6 +5,9 @@ services:
     user: root
     ports:
       - 8669:8669
+    volumes:
+      - ./custom-genesis.json:/data/thor/custom-genesis.json
+      - thor-data:/data/thor
     command:
       - solo
       - --on-demand # create new block when there is pending transaction
@@ -18,6 +21,8 @@ services:
       - --data-dir=/data/thor # data directory
       - --verbosity=9
       - --persist
+      - --genesis=/data/thor/custom-genesis.json
+      - --block-interval=1
 
     healthcheck:
       # We run the health check using standard UNIX tools so we don't have to
@@ -26,3 +31,6 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+
+volumes:
+  thor-data:
