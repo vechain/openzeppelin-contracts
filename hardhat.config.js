@@ -121,8 +121,7 @@ module.exports = {
     vechain_galactica_testnet: {
       url: "https://galactica.dev.node.vechain.org",
       accounts: {
-        mnemonic:
-            process.env.GALACTICA_DEVNET_MNEMONIC,
+        mnemonic: process.env.GALACTICA_DEVNET_MNEMONIC || "",
         path: "m/44'/818'/0'/0",
         count: 5,
         initialIndex: 0,
