@@ -21,8 +21,8 @@ jobs:
       - name: Run Solo Tests
         run: npm run test:solo:gha
         
-  test-galactica:
-    name: Test Galactica
+  test-galactica-devnet:
+    name: Test Galactica Devnet
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
