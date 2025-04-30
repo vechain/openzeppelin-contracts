@@ -30,4 +30,6 @@ jobs:
         uses: ./.github/actions/setup
         
       - name: Run Galactica Tests
+        env:
+          GALACTICA_DEVNET_MNEMONIC: ${{ secrets.GALACTICA_DEVNET_MNEMONIC }}
         run: npm run test:galactica:testnet
