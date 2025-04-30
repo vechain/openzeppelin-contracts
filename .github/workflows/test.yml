@@ -1,0 +1,42 @@
+name: Thor compatibility tests
+
+on:
+  push:
+    branches: [ thor-compatibility ]
+  pull_request:
+    branches: [ thor-compatibility ]
+
+jobs:
+  test-solo:
+    name: Test Solo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run Solo Tests
+        run: npm run test:solo
+        
+  test-galactica:
+    name: Test Galactica
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run Galactica Tests
+        run: npm run test:galactica:testnet
