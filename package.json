@@ -67,7 +67,6 @@
     "@vechain/sdk-hardhat-plugin": "^1.2.0-rc.2",
     "array.prototype.at": "^1.1.1",
     "chai": "^4.2.0",
-    "dotenv": "^16.5.0",
     "eslint": "^8.30.0",
     "eslint-config-prettier": "^9.0.0",
     "eth-sig-util": "^3.0.0",
