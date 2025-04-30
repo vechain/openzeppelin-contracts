@@ -11,21 +11,9 @@ jobs:
     name: Test Solo
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-      - name: Ensure NODE_ENV is not production
-        run: echo "NODE_ENV=development" >> $GITHUB_ENV          
-      - name: Install dependencies
-        run: npm install
-
-      - name: Verify Hardhat Installed
-        run: ls -la node_modules/.bin && ./node_modules/.bin/hardhat --version
-
+      - uses: actions/checkout@v4
+      - name: Set up environment
+        uses: ./.github/actions/setup
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -33,7 +21,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
-          
       - name: Run Solo Tests
         run: npm run test:solo
         
@@ -41,19 +28,10 @@ jobs:
     name: Test Galactica
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm install --include=dev
-
-      - name: Verify Hardhat Installed
-        run: ls -la node_modules/.bin && ./node_modules/.bin/hardhat --version
+      - uses: actions/checkout@v4
+    
+      - name: Set up environment
+        uses: ./.github/actions/setup
 
       - name: Run Galactica Tests
         run: npm run test:galactica:testnet
