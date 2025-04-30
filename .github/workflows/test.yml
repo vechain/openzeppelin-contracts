@@ -20,7 +20,7 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: npm install
+        run: npm install --include=dev
 
       - name: Verify Hardhat Installed
         run: ls -la node_modules/.bin && ./node_modules/.bin/hardhat --version
@@ -49,7 +49,7 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: npm install
+        run: npm install --include=dev
 
       - name: Verify Hardhat Installed
         run: ls -la node_modules/.bin && ./node_modules/.bin/hardhat --version
