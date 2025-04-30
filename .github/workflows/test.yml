@@ -19,7 +19,7 @@ jobs:
           node-version: '18'
           
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         
       - name: Run Solo Tests
         run: npm run test:solo
@@ -36,7 +36,7 @@ jobs:
           node-version: '18'
           
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         
       - name: Run Galactica Tests
         run: npm run test:galactica:testnet
