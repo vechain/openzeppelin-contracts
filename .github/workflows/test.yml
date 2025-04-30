@@ -18,9 +18,10 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          
+      - name: Ensure NODE_ENV is not production
+        run: echo "NODE_ENV=development" >> $GITHUB_ENV          
       - name: Install dependencies
-        run: npm install --include=dev
+        run: npm install
 
       - name: Verify Hardhat Installed
         run: ls -la node_modules/.bin && ./node_modules/.bin/hardhat --version
