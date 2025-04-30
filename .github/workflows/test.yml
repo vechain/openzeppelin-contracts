@@ -21,7 +21,7 @@ jobs:
         run: docker compose --version
       
       - name: Run Solo Tests
-        run: npm run test:solo
+        run: npm run test:solo:gha
         
   test-galactica:
     name: Test Galactica
