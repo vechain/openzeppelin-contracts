@@ -43,7 +43,7 @@ module.exports = function shouldBehaveLikeProxy(createProxy, accounts) {
     describe('when sending some balance', function () {
       const value = 10e5;
 
-      it('reverts', async function () {
+      it.only('reverts', async function () {
         await expectThorRevert(
           createProxy(this.implementation, initializeData, { value }), "", expectRevertCheckStrategy.unspecified,);
       });

@@ -674,7 +674,7 @@ contract('TimelockController', function (accounts) {
       await time.increase(MINDELAY);
     });
 
-    it.only('cannot execute before dependency', async function () {
+    it('cannot execute before dependency', async function () {
       await expectRevert.unspecified(
         this.mock.execute(
           this.operation2.target,
@@ -687,7 +687,7 @@ contract('TimelockController', function (accounts) {
     });
   });
 
-  describe.only('usage scenario', function () {
+  describe('usage scenario', function () {
     this.timeout(100000);
 
     it('call reverting', async function () {
