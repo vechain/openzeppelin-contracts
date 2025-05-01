@@ -518,7 +518,7 @@ contract('Governor', function (accounts) {
           expect(await this.mock.state(this.proposal.id)).to.be.bignumber.equal(Enums.ProposalState.Defeated);
         });
 
-        it('Succeeded', async function () {
+        it.only('Succeeded', async function () {
           await this.helper.propose();
           await this.helper.waitForSnapshot();
           await this.helper.vote({ support: Enums.VoteType.For }, { from: voter1 });
