@@ -1,7 +1,10 @@
 name: Thor compatibility tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ thor-compatibility ]
+  pull_request:
+    branches: [ thor-compatibility ]
 
 jobs:
   test-solo:

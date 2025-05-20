@@ -65,7 +65,7 @@
     "@openzeppelin/test-helpers": "^0.5.13",
     "@openzeppelin/upgrade-safe-transpiler": "^0.3.32",
     "@openzeppelin/upgrades-core": "^1.20.6",
-    "@vechain/sdk-hardhat-plugin": "^1.2.0-rc.2",
+    "@vechain/sdk-hardhat-plugin": "1.2.0-rc.3",
     "array.prototype.at": "^1.1.1",
     "chai": "^4.2.0",
     "eslint": "^8.30.0",
