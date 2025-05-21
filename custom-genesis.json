@@ -1,6 +1,6 @@
 {
     "gasLimit": 40000000,
-    "extraData": "Galactica local",
+    "extraData": "Early Galactica",
     "forkConfig": {
       "VIP191": 0,
       "ETH_CONST": 0,
