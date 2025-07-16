@@ -8,9 +8,10 @@
 
 require("@vechain/sdk-hardhat-plugin");
 
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const proc = require('child_process');
+const { task } = require("hardhat/config");
 
 const argv = require('yargs/yargs')()
   .env('')
@@ -139,6 +140,10 @@ module.exports = {
     timeout: 5 * 60 * 1000,
   },
   docgen: require('./docs/config'),
+  paths:{
+    sources:"./contracts",
+    tests:shard_test_dir()
+  }
 };
 
 if (argv.gas) {
@@ -159,3 +164,71 @@ if (argv.coverage) {
 function hasFoundry() {
   return proc.spawnSync('forge', ['-V'], { stdio: 'ignore' }).error === undefined;
 }
+
+function shard_test_dir() {
+  const shard_id = process.env.npm_config_shard_id || process.env.SHARD_ID || argv.shard_id || ""
+  const shard_test_dir = path.join(__dirname,`./shard_test_${shard_id}`);
+
+  if(shard_id !== "" && fs.existsSync(shard_test_dir)){
+    return shard_test_dir;
+  } else {
+    return "./test"
+  }
+}
+
+task("pre-test","Initialize shard test directory").setAction(async () => {
+  const shard_id = process.env.npm_config_shard_id || process.env.SHARD_ID || argv.shard_id || ""
+
+  if(shard_id === ""){
+    console.warn("No shard_id provided. The hardhat will return all test case.");
+    process.exit(0);
+  }
+
+  const shard_test_dir = path.join(__dirname,`./shard_test_${shard_id}`);
+  const shard_config_path = path.join(__dirname,"./test/test_shard_config.json");
+
+  if(await fs.exists(shard_config_path) == false){
+    console.error(`No found ${shard_config_path}.`);
+    process.exit(1);
+  }
+
+  const shard_json = JSON.parse(await fs.readFile(shard_config_path));
+  const shard_config = shard_json.find(s => s.sharding_id == shard_id);
+  
+  if(shard_config == null || !Array.isArray(shard_config.sources_paths) || shard_config.sources_paths.length == 0) {
+    console.error(`Not found ${shard_id} config`);
+    process.exit(1);
+  }
+
+  try {
+    if(await fs.exists(shard_test_dir) == true){
+      await fs.remove(shard_test_dir);
+    }
+    fs.mkdir(shard_test_dir);
+    
+    for(const source of shard_config.sources_paths) {
+      if(await fs.exists(path.join(__dirname,source))){
+        var target = source.replace(/^\.\/test\//, `./shard_test_${shard_id}/`)
+        await fs.copy(path.join(__dirname,source),path.join(__dirname,target))
+      }
+    }
+  } catch(e) {
+    console.error(`Initialize ${shard_test_dir} directory faild. ${e}`)
+    process.exit(1);
+  }
+
+  console.log(`Initialize ${shard_test_dir} directory completed.`);
+  process.exit(0);
+});
+
+task("post-test","Remove shard test directory").setAction(async() => {
+  const shard_id = process.env.npm_config_shard_id || process.env.SHARD_ID || argv.shard_id || ""
+  
+  if(shard_id !== ""){
+    const shard_test_dir = path.join(__dirname,`./shard_test_${shard_id}`);
+    if(await fs.exists(shard_test_dir)){
+      await fs.remove(shard_test_dir);
+    }
+  }
+  process.exit(0);
+});

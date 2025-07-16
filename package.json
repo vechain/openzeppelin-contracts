@@ -32,7 +32,8 @@
     "test:inheritance": "scripts/checks/inheritance-ordering.js artifacts/build-info/*",
     "test:generation": "scripts/checks/generation.sh",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
-    "slither": "npm run clean && slither ."
+    "slither": "npm run clean && slither .",
+    "test:solo:gha:sharding": "docker compose up -d && sleep 5 && hardhat pre-test;ret=$?; env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; hardhat post-test; ret=$?; docker compose down; exit $ret"
   },
   "repository": {
     "type": "git",
@@ -73,6 +74,7 @@
     "eth-sig-util": "^3.0.0",
     "ethereumjs-util": "^7.0.7",
     "ethereumjs-wallet": "^1.0.1",
+    "fs-extra": "^11.3.0",
     "glob": "^10.3.5",
     "graphlib": "^2.1.8",
     "hardhat": "^2.9.1",

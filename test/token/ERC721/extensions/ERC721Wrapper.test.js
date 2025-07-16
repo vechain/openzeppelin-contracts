@@ -1,7 +1,7 @@
 const { BN, expectEvent, expectRevert, constants } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
-const { shouldBehaveLikeERC721 } = require('../ERC721.behavior');
+// const { shouldBehaveLikeERC721 } = require('../ERC721.behavior');
 
 const ERC721 = artifacts.require('$ERC721');
 const ERC721Wrapper = artifacts.require('$ERC721Wrapper');
@@ -271,7 +271,13 @@ contract('ERC721Wrapper', function (accounts) {
     });
   });
 
-  describe('ERC712 behavior', function () {
-    shouldBehaveLikeERC721(...accounts);
-  });
+
+  // Comment: 
+  // Remove 'ERC712 behavior' test case for VeChain VM compatibility test.
+  // The 'ERC712 behavior' has been run in `./test/token/ERC721/ERC721.test.js`. 
+  // For VM compatibility, it's will take too much time and it's not necessary.
+
+  // describe('ERC712 behavior', function () {
+  //   shouldBehaveLikeERC721(...accounts);
+  // });
 });

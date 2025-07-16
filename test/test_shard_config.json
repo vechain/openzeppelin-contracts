@@ -1,0 +1,142 @@
+[
+    {
+        "sharding_id": "access",
+        "sources_paths": [
+            "./test/access/",
+            "./test/helpers/",
+            "./test//utils/introspection/SupportsInterface.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "finance",
+        "sources_paths": [
+            "./test/finance/",
+            "./test/helpers/"
+        ]
+    },
+    {
+        "sharding_id": "governance",
+        "sources_paths": [
+            "./test/governance/Governor.test.js",
+            "./test/governance/Governor.t.sol",
+            "./test/governance/utils/EIP6372.behavior.js",
+            "./test/helpers/",
+            "./test/utils/introspection/SupportsInterface.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "gov_timelock",
+        "sources_paths": [
+            "./test/governance/TimelockController.test.js",
+            "./test/helpers/",
+            "./test/utils/introspection/SupportsInterface.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "gov_utils_extensions",
+        "sources_paths": [
+            "./test/governance/utils",
+            "./test/governance/extensions",
+            "./test/helpers/",
+            "./test/utils/introspection/SupportsInterface.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "metatx",
+        "sources_paths": [
+            "./test/metatx/",
+            "./test/helpers/",
+            "./test/utils/Context.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "proxy",
+        "sources_paths": [
+            "./test/proxy/",
+            "./test/helpers/"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC20",
+        "sources_paths": [
+            "./test/token/ERC20/",
+            "./test/helpers/",
+            "./test/governance/utils/Votes.behavior.js",
+            "./test/governance/utils/EIP6372.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC721",
+        "sources_paths": [
+            "./test/token/ERC721/ERC721.test.js",
+            "./test/token/ERC721/ERC721.behavior.js",
+            "./test/helpers/",
+            "./test/token/common/ERC2981.behavior.js",
+            "./test/utils/introspection/SupportsInterface.behavior.js",
+            "./test/governance/utils/Votes.behavior.js",
+            "./test/governance/utils/EIP6372.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC721Enumerable",
+        "sources_paths": [
+            "./test/token/ERC721/ERC721Enumerable.test.js",
+            "./test/token/ERC721/ERC721.behavior.js",
+            "./test/helpers/",
+            "./test/utils/introspection/SupportsInterface.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC721Wrapper",
+        "sources_paths": [
+            "./test/token/ERC721/extensions/ERC721Wrapper.test.js",
+            "./test/token/ERC721/utils/",
+            "./test/helpers/",
+            "./test/token/common/ERC2981.behavior.js",
+            "./test/token/ERC721/ERC721.behavior.js",
+            "./test/utils/introspection/SupportsInterface.behavior.js",
+            "./test/governance/utils/Votes.behavior.js",
+            "./test/governance/utils/EIP6372.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC721_extensions",
+        "sources_paths": [
+            "./test/token/ERC721/extensions/ERC721Burnable.test.js",
+            "./test/token/ERC721/extensions/ERC721Consecutive.test.js",
+            "./test/token/ERC721/extensions/ERC721Pausable.test.js",
+            "./test/token/ERC721/extensions/ERC721Royalty.test.js",
+            "./test/token/ERC721/extensions/ERC721URIStorage.test.js",
+            "./test/token/ERC721/extensions/ERC721Votes.test.js",
+            "./test/token/ERC721/utils/",
+            "./test/helpers/",
+            "./test/token/common/ERC2981.behavior.js",
+            "./test/token/ERC721/ERC721.behavior.js",
+            "./test/utils/introspection/SupportsInterface.behavior.js",
+            "./test/governance/utils/Votes.behavior.js",
+            "./test/governance/utils/EIP6372.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC721_utils",
+        "sources_paths": [
+            "./test/token/ERC721/utils/",
+            "./test/helpers/"
+        ]
+    },
+    {
+        "sharding_id": "token_ERC1155",
+        "sources_paths": [
+            "./test/token/ERC1155/",
+            "./test/helpers/",
+            "./test/utils/introspection/SupportsInterface.behavior.js"
+        ]
+    },
+    {
+        "sharding_id": "utils",
+        "sources_paths": [
+            "./test/utils/",
+            "./test/helpers/"
+        ]
+    }
+]

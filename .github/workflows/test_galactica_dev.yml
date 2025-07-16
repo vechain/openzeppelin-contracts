@@ -1,23 +1,9 @@
-name: Thor compatibility tests
+name: Thor compatibility tests for galactica
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-solo:
-    name: Test Solo
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up environment
-        uses: ./.github/actions/setup
-      
-      - name: Check Docker Compose
-        run: docker compose --version
-      
-      - name: Run Solo Tests
-        run: npm run test:solo:gha
-        
   test-galactica-devnet:
     name: Test Galactica Devnet
     runs-on: ubuntu-latest
