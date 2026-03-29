@@ -50,7 +50,7 @@ const argv = require('yargs/yargs')()
     compiler: {
       alias: 'compileVersion',
       type: 'string',
-      default: '0.8.20',
+      default: '0.8.24',
     },
     evmVersion: {
       alias: 'evmVersion',

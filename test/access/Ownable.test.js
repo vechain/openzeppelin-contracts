@@ -14,6 +14,13 @@ contract('Ownable', function (accounts) {
     this.ownable = await Ownable.new(owner);
   });
 
+  it('emits ownership transfer events during construction', async function () {
+    await expectEvent.inConstruction(this.ownable, 'OwnershipTransferred', {
+      previousOwner: ZERO_ADDRESS,
+      newOwner: owner,
+    });
+  });
+
   it('rejects zero address for initialOwner', async function () {
     await expectThorRevert(Ownable.new(constants.ZERO_ADDRESS), '', expectRevertCheckStrategy.unspecified);
   });

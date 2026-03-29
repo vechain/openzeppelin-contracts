@@ -1,8 +1,10 @@
-const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { selector } = require('../../helpers/methods');
+const { latest } = require('../../helpers/utils');
 
 const AccessManaged = artifacts.require('$AccessManagedTarget');
 const AccessManager = artifacts.require('$AccessManager');
+const AuthorityNoDelayMock = artifacts.require('AuthorityNoDelayMock');
 
 const AuthoritiyObserveIsConsuming = artifacts.require('$AuthoritiyObserveIsConsuming');
 
@@ -56,16 +58,50 @@ contract('AccessManaged', function (accounts) {
 
         await expectRevert.unspecified(this.managed.methods[method]({ from: roleMember }));
       });
+
+      it('succeeds if the operation is scheduled', async function () {
+        const delay = time.duration.hours(12);
+        const calldata = await this.managed.contract.methods[method]().encodeABI();
+
+        const scheduledAt = (await latest()).addn(1);
+        const when = scheduledAt.add(delay);
+        await time.increaseTo(scheduledAt);
+        await this.authority.schedule(this.managed.address, calldata, when, { from: roleMember });
+
+        await time.increaseTo(when);
+
+        await this.managed.methods[method]({ from: roleMember });
+      });
     });
   });
 
   describe('setAuthority', function () {
     beforeEach(async function () {
+      // Use AuthorityNoDelayMock (with forwardCall) so the authority contract can initiate calls
+      // without needing account impersonation (not supported on VeChain Thor).
+      this.forwardingAuthority = await AuthorityNoDelayMock.new();
+      this.managedAlt = await AccessManaged.new(this.forwardingAuthority.address);
       this.newAuthority = await AccessManager.new(admin);
     });
 
     it('reverts if the caller is not the authority', async function () {
-      await expectRevert.unspecified(this.managed.setAuthority(other, { from: other }));
+      await expectRevert.unspecified(this.managedAlt.setAuthority(other, { from: other }));
+    });
+
+    it('reverts if the new authority is not a valid authority', async function () {
+      const calldata = this.managedAlt.contract.methods.setAuthority(other).encodeABI();
+      await expectRevert.unspecified(
+        this.forwardingAuthority.forwardCall(this.managedAlt.address, calldata),
+      );
+    });
+
+    it('sets authority and emits AuthorityUpdated event', async function () {
+      const calldata = this.managedAlt.contract.methods.setAuthority(this.newAuthority.address).encodeABI();
+      const receipt = await this.forwardingAuthority.forwardCall(this.managedAlt.address, calldata);
+      await expectEvent.inTransaction(receipt.tx, this.managedAlt, 'AuthorityUpdated', {
+        authority: this.newAuthority.address,
+      });
+      expect(await this.managedAlt.authority()).to.equal(this.newAuthority.address);
     });
   });
 

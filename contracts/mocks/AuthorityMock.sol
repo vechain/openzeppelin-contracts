@@ -25,17 +25,23 @@ contract AuthorityNoDelayMock is IAuthority {
     function _setImmediate(bool immediate) external {
         _immediate = immediate;
     }
+
+    function forwardCall(address target, bytes calldata data) external returns (bytes memory) {
+        (bool success, bytes memory result) = target.call(data);
+        require(success, "forwardCall failed");
+        return result;
+    }
 }
 
 contract AuthorityDelayMock {
     bool _immediate;
-    uint32 _delay;
+    uint256 _delay;
 
     function canCall(
         address /* caller */,
         address /* target */,
         bytes4 /* selector */
-    ) external view returns (bool immediate, uint32 delay) {
+    ) external view returns (bool immediate, uint256 delay) {
         return (_immediate, _delay);
     }
 
@@ -43,7 +49,7 @@ contract AuthorityDelayMock {
         _immediate = immediate;
     }
 
-    function _setDelay(uint32 delay) external {
+    function _setDelay(uint256 delay) external {
         _delay = delay;
     }
 }
