@@ -96,4 +96,50 @@ library Base64 {
 
         return result;
     }
+
+    /**
+     * @dev Converts a `bytes` to its Base64Url `string` representation.
+     * Output is not padded with `=` as specified in https://www.rfc-editor.org/rfc/rfc4648[rfc4648].
+     */
+    function encodeURL(bytes memory data) internal pure returns (string memory) {
+        if (data.length == 0) return "";
+
+        string memory table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+        uint256 resultLength = (4 * data.length + 2) / 3;
+        string memory result = new string(resultLength);
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let tablePtr := add(table, 1)
+            let resultPtr := add(result, 0x20)
+            let dataPtr := data
+            let endPtr := add(data, mload(data))
+
+            let afterPtr := add(endPtr, 0x20)
+            let afterCache := mload(afterPtr)
+            mstore(afterPtr, 0x00)
+
+            for {} lt(dataPtr, endPtr) {} {
+                dataPtr := add(dataPtr, 3)
+                let input := mload(dataPtr)
+
+                mstore8(resultPtr, mload(add(tablePtr, and(shr(18, input), 0x3F))))
+                resultPtr := add(resultPtr, 1)
+                mstore8(resultPtr, mload(add(tablePtr, and(shr(12, input), 0x3F))))
+                resultPtr := add(resultPtr, 1)
+                mstore8(resultPtr, mload(add(tablePtr, and(shr(6, input), 0x3F))))
+                resultPtr := add(resultPtr, 1)
+                mstore8(resultPtr, mload(add(tablePtr, and(input, 0x3F))))
+                resultPtr := add(resultPtr, 1)
+            }
+
+            mstore(afterPtr, afterCache)
+
+            // Trim trailing characters to match unpadded length
+            mstore(result, resultLength)
+        }
+
+        return result;
+    }
 }

@@ -50,7 +50,7 @@ const argv = require('yargs/yargs')()
     compiler: {
       alias: 'compileVersion',
       type: 'string',
-      default: '0.8.24',
+      default: '0.8.31',
     },
     evmVersion: {
       alias: 'evmVersion',
@@ -91,7 +91,7 @@ module.exports = {
         runs: 200,
       },
       evmVersion: argv.evmVersion,
-      viaIR: withOptimizations && argv.ir,
+      viaIR: withOptimizations || argv.ir,
       outputSelection: { '*': { '*': ['storageLayout'] } },
     },
   },
@@ -103,6 +103,8 @@ module.exports = {
     '*': {
       'code-size': withOptimizations,
       'unused-param': !argv.coverage, // coverage causes unused-param warnings
+      2424: 'off', // Natspec memory-safe-assembly deprecated (old syntax, use assembly ("memory-safe") block instead)
+      'transient-storage': 'off', // EIP-1153 informational warning
       default: 'error',
     },
   },

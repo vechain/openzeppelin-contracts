@@ -158,6 +158,28 @@ library ECDSA {
     }
 
     /**
+     * @dev Variant of {tryRecover} that takes the signature as a calldata `bytes` slice.
+     */
+    function tryRecoverCalldata(
+        bytes32 hash,
+        bytes calldata signature
+    ) internal pure returns (address recovered, RecoverError err, bytes32 errArg) {
+        if (signature.length == 65) {
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+            assembly ("memory-safe") {
+                r := calldataload(signature.offset)
+                s := calldataload(add(signature.offset, 0x20))
+                v := byte(0, calldataload(add(signature.offset, 0x40)))
+            }
+            return tryRecover(hash, v, r, s);
+        } else {
+            return (address(0), RecoverError.InvalidSignatureLength, bytes32(signature.length));
+        }
+    }
+
+    /**
      * @dev Optionally reverts with the corresponding custom error according to the `error` argument provided.
      */
     function _throwError(RecoverError error, bytes32 errorArg) private pure {
