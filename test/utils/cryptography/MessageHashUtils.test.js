@@ -29,6 +29,15 @@ contract('MessageHashUtils', function () {
     });
   });
 
+  context('toEthSignedMessageHash version match', function () {
+    it('bytes32 and bytes versions match for 32-byte messages', async function () {
+      const message = web3.utils.randomHex(32);
+      const fixed = await this.messageHashUtils.methods['$toEthSignedMessageHash(bytes32)'](message);
+      const dynamic = await this.messageHashUtils.methods['$toEthSignedMessageHash(bytes)'](message);
+      expect(fixed).to.equal(dynamic);
+    });
+  });
+
   context('toDataWithIntendedValidatorHash', function () {
     it('returns the digest correctly', async function () {
       expect(

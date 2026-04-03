@@ -85,6 +85,43 @@ contract('Arrays', function () {
         expect(await this.arrays.findUpperBound(10)).to.be.bignumber.equal('0');
       });
     });
+
+    context('Array with duplicated elements', function () {
+      const DUPLICATED_ARRAY = [0, 10, 10, 10, 10, 10, 10, 10, 20];
+
+      beforeEach(async function () {
+        this.arrays = await Uint256ArraysMock.new(DUPLICATED_ARRAY);
+      });
+
+      it('search value is duplicated', async function () {
+        // findUpperBound with duplicates returns upperBound(array, value) - 1
+        expect(await this.arrays.findUpperBound(10)).to.be.bignumber.equal('7');
+      });
+    });
+
+    context('Array with duplicated first element', function () {
+      const DUPLICATED_FIRST_ARRAY = [10, 10, 10, 10, 10, 10, 10, 20];
+
+      beforeEach(async function () {
+        this.arrays = await Uint256ArraysMock.new(DUPLICATED_FIRST_ARRAY);
+      });
+
+      it('search value is duplicated first element', async function () {
+        expect(await this.arrays.findUpperBound(10)).to.be.bignumber.equal('6');
+      });
+    });
+
+    context('Array with duplicated last element', function () {
+      const DUPLICATED_LAST_ARRAY = [0, 10, 10, 10, 10, 10, 10, 10];
+
+      beforeEach(async function () {
+        this.arrays = await Uint256ArraysMock.new(DUPLICATED_LAST_ARRAY);
+      });
+
+      it('search value is duplicated last element', async function () {
+        expect(await this.arrays.findUpperBound(10)).to.be.bignumber.equal('7');
+      });
+    });
   });
 
   describe('unsafeAccess', function () {

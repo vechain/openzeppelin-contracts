@@ -65,6 +65,18 @@ contract('MerkleProof', function () {
       expect(await this.merkleProof.$verify(badProof, root, leaf)).to.equal(false);
       expect(await this.merkleProof.$verifyCalldata(badProof, root, leaf)).to.equal(false);
     });
+
+    it('processes a valid Merkle proof and returns the root', async function () {
+      const elements = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('');
+      const merkleTree = new MerkleTree(elements, keccak256, { hashLeaves: true, sortPairs: true });
+
+      const root = merkleTree.getHexRoot();
+      const leaf = keccak256(elements[0]);
+      const proof = merkleTree.getHexProof(leaf);
+
+      expect(await this.merkleProof.$processProof(proof, leaf)).to.equal(root);
+      expect(await this.merkleProof.$processProofCalldata(proof, leaf)).to.equal(root);
+    });
   });
 
   describe('multiProofVerify', function () {
@@ -170,6 +182,19 @@ contract('MerkleProof', function () {
       const root = merkleTree.getRoot();
       expect(await this.merkleProof.$multiProofVerify([root], [], root, [])).to.equal(true);
       expect(await this.merkleProof.$multiProofVerifyCalldata([root], [], root, [])).to.equal(true);
+    });
+
+    it('processes a valid Merkle multi proof and returns the root', async function () {
+      const leaves = ['a', 'b', 'c', 'd', 'e', 'f'].map(keccak256).sort(Buffer.compare);
+      const merkleTree = new MerkleTree(leaves, keccak256, { sort: true });
+
+      const root = merkleTree.getRoot();
+      const proofLeaves = ['b', 'f', 'd'].map(keccak256).sort(Buffer.compare);
+      const proof = merkleTree.getMultiProof(proofLeaves);
+      const proofFlags = merkleTree.getProofFlags(proofLeaves, proof);
+
+      expect(await this.merkleProof.$processMultiProof(proof, proofFlags, proofLeaves)).to.deep.equal(root);
+      expect(await this.merkleProof.$processMultiProofCalldata(proof, proofFlags, proofLeaves)).to.deep.equal(root);
     });
 
     it('reverts processing manipulated proofs with a zero-value node at depth 1', async function () {

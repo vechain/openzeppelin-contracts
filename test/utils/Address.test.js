@@ -1,9 +1,12 @@
 const { balance, constants, ether, expectRevert, send, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
+const { expectRevertCustomError } = require('../helpers/customError');
+const { ethers } = require("hardhat");
 
 const Address = artifacts.require('$Address');
 const EtherReceiver = artifacts.require('EtherReceiverMock');
 const CallReceiverMock = artifacts.require('CallReceiverMock');
+const fakeContract = { interface: ethers.Interface.from(['error SomeCustomErrorWithoutArgs()']) };
 
 contract('Address', function (accounts) {
   const [recipient, other] = accounts;
@@ -294,6 +297,59 @@ contract('Address', function (accounts) {
     it('returns returndata on success', async function () {
       const returndata = '0x123abc';
       expect(await this.mock.$verifyCallResult(true, returndata)).to.equal(returndata);
+    });
+
+    it('bubble returndata on failure', async function () {
+      const returndata = '0x123abc';
+      await expect(this.mock.$verifyCallResult(false, returndata)).to.be.revertedWithCustomError(
+        fakeContract,
+        'SomeCustomErrorWithoutArgs',
+      );
+    });
+
+    it('standard error on failure without returndata', async function () {
+      await expectRevertCustomError(
+        this.mock.$verifyCallResult(false, '0x'),
+        'FailedCall',
+        [],
+      );
+    });
+  });
+
+  describe('verifyCallResultFromTarget', function () {
+    it('success with non-empty returndata from contract', async function () {
+      const returndata = '0x123abc';
+      expect(await this.mock.$verifyCallResultFromTarget(this.mock.address, true, returndata)).to.equal(returndata);
+    });
+
+    it('success with empty returndata from contract', async function () {
+      expect(await this.mock.$verifyCallResultFromTarget(this.mock.address, true, '0x')).to.equal('0x');
+    });
+
+    it('success with empty returndata from EOA reverts with AddressEmptyCode', async function () {
+      const [eoa] = await web3.eth.getAccounts();
+      await expectRevertCustomError(
+        this.mock.$verifyCallResultFromTarget(eoa, true, '0x'),
+        'AddressEmptyCode',
+        [eoa],
+      );
+    });
+
+    it('failure with non-empty returndata bubbles up custom error', async function () {
+      const selector = web3.eth.abi.encodeFunctionSignature('SomeCustomErrorWithoutArgs()');
+      await expectRevertCustomError(
+        this.mock.$verifyCallResultFromTarget(this.mock.address, false, selector),
+        'SomeCustomErrorWithoutArgs',
+        [],
+      );
+    });
+
+    it('failure with empty returndata reverts with FailedCall', async function () {
+      await expectRevertCustomError(
+        this.mock.$verifyCallResultFromTarget(this.mock.address, false, '0x'),
+        'FailedCall',
+        [],
+      );
     });
   });
 });

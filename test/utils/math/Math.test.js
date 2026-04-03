@@ -360,6 +360,158 @@ contract('Math', function () {
     });
   });
 
+  describe('add512', function () {
+    it('adds correctly without overflow', async function () {
+      const a = new BN('5678');
+      const b = new BN('1234');
+      const result = await this.math.$add512(a, b);
+      expect(result[0]).to.be.bignumber.equal('0');
+      expect(result[1]).to.be.bignumber.equal(a.add(b));
+    });
+
+    it('adds correctly with overflow into high word', async function () {
+      const a = MAX_UINT256;
+      const b = new BN('1');
+      const result = await this.math.$add512(a, b);
+      expect(result[0]).to.be.bignumber.equal('1');
+      expect(result[1]).to.be.bignumber.equal('0');
+    });
+  });
+
+  describe('mul512', function () {
+    it('multiplies correctly without overflow', async function () {
+      const a = new BN('5678');
+      const b = new BN('1234');
+      const result = await this.math.$mul512(a, b);
+      expect(result[0]).to.be.bignumber.equal('0');
+      expect(result[1]).to.be.bignumber.equal(a.mul(b));
+    });
+
+    it('multiplies correctly with overflow into high word', async function () {
+      const a = MAX_UINT256;
+      const b = new BN('2');
+      const result = await this.math.$mul512(a, b);
+      expect(result[0]).to.be.bignumber.equal('1');
+      expect(result[1]).to.be.bignumber.equal(MAX_UINT256.sub(new BN('1')));
+    });
+  });
+
+  describe('mulShr', function () {
+    it('reverts with result higher than 2^256', async function () {
+      await expectRevert.unspecified(
+        this.math.methods['$mulShr(uint256,uint256,uint8,uint8)'](MAX_UINT256, '5', '1', Rounding.Floor)
+      );
+    });
+
+    describe('does round down', function () {
+      it('small values', async function () {
+        for (const rounding of RoundingDown) {
+          expect(
+            await this.math.methods['$mulShr(uint256,uint256,uint8,uint8)']('3', '5', '1', rounding),
+          ).to.be.bignumber.equal('7');
+          expect(
+            await this.math.methods['$mulShr(uint256,uint256,uint8,uint8)']('3', '5', '2', rounding),
+          ).to.be.bignumber.equal('3');
+        }
+      });
+    });
+
+    describe('does round up', function () {
+      it('small values', async function () {
+        for (const rounding of RoundingUp) {
+          expect(
+            await this.math.methods['$mulShr(uint256,uint256,uint8,uint8)']('3', '5', '1', rounding),
+          ).to.be.bignumber.equal('8');
+          expect(
+            await this.math.methods['$mulShr(uint256,uint256,uint8,uint8)']('3', '5', '2', rounding),
+          ).to.be.bignumber.equal('4');
+        }
+      });
+    });
+  });
+
+  describe('modExp', function () {
+    describe('with uint256 inputs', function () {
+      it('is correctly calculating modulus', async function () {
+        // 3^200 mod 50 = 1
+        expect(
+          await this.math.methods['$modExp(uint256,uint256,uint256)']('3', '200', '50'),
+        ).to.be.bignumber.equal('1');
+      });
+
+      it('reverts when modulus is zero', async function () {
+        await expectRevert.unspecified(
+          this.math.methods['$modExp(uint256,uint256,uint256)']('3', '200', '0')
+        );
+      });
+    });
+
+    describe('with bytes inputs', function () {
+      it('is correctly calculating modulus', async function () {
+        // 3^200 mod 50 = 1 (in bytes: 0x03, 0xc8, 0x32 -> 0x01)
+        expect(
+          await this.math.methods['$modExp(bytes,bytes,bytes)']('0x03', '0xc8', '0x32'),
+        ).to.equal('0x01');
+      });
+
+      it('reverts when modulus is zero', async function () {
+        await expectRevert.unspecified(
+          this.math.methods['$modExp(bytes,bytes,bytes)']('0x03', '0xc8', '0x')
+        );
+      });
+    });
+  });
+
+  describe('tryModExp', function () {
+    describe('with uint256 inputs', function () {
+      it('is correctly calculating modulus', async function () {
+        const result = await this.math.methods['$tryModExp(uint256,uint256,uint256)']('3', '200', '50');
+        expect(result[0]).to.equal(true);
+        expect(result[1]).to.be.bignumber.equal('1');
+      });
+
+      it('returns false when modulus is zero', async function () {
+        const result = await this.math.methods['$tryModExp(uint256,uint256,uint256)']('3', '200', '0');
+        expect(result[0]).to.equal(false);
+        expect(result[1]).to.be.bignumber.equal('0');
+      });
+    });
+
+    describe('with bytes inputs', function () {
+      it('is correctly calculating modulus', async function () {
+        const result = await this.math.methods['$tryModExp(bytes,bytes,bytes)']('0x03', '0xc8', '0x32');
+        expect(result[0]).to.equal(true);
+        expect(result[1]).to.equal('0x01');
+      });
+
+      it('returns false when modulus is zero', async function () {
+        const result = await this.math.methods['$tryModExp(bytes,bytes,bytes)']('0x03', '0xc8', '0x');
+        expect(result[0]).to.equal(false);
+      });
+    });
+  });
+
+  describe('clz', function () {
+    it('zero value', async function () {
+      expect(await this.math.$clz('0')).to.be.bignumber.equal('256');
+    });
+
+    it('small values', async function () {
+      expect(await this.math.$clz('1')).to.be.bignumber.equal('255');
+      expect(await this.math.$clz('255')).to.be.bignumber.equal('248');
+    });
+
+    it('larger values', async function () {
+      expect(await this.math.$clz('256')).to.be.bignumber.equal('247');
+      expect(await this.math.$clz('65280')).to.be.bignumber.equal('240'); // 0xff00
+      expect(await this.math.$clz('65536')).to.be.bignumber.equal('239'); // 0x10000
+    });
+
+    it('max value', async function () {
+      expect(await this.math.$clz(MAX_UINT256)).to.be.bignumber.equal('0');
+    });
+  });
+
   describe('log', function () {
     describe('log2', function () {
       it('rounds down', async function () {
