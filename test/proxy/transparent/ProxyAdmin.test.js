@@ -16,7 +16,8 @@ contract('ProxyAdmin', function (accounts) {
   });
 
   beforeEach(async function () {
-    const initializeData = Buffer.from('');
+    // Must pass non-empty initData; ERC1967Proxy now requires _data to be non-empty by default
+    const initializeData = new ImplV1('').contract.methods['initializeNonPayable()']().encodeABI();
     const proxy = await TransparentUpgradeableProxy.new(this.implementationV1.address, proxyAdminOwner, initializeData);
 
     let txHash = proxy.transactionHash

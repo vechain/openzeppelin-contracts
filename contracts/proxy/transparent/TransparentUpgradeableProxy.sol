@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v5.0.0) (proxy/transparent/TransparentUpgradeableProxy.sol)
+// OpenZeppelin Contracts (last updated v5.5.0) (proxy/transparent/TransparentUpgradeableProxy.sol)
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.22;
 
 import {ERC1967Utils} from "../ERC1967/ERC1967Utils.sol";
 import {ERC1967Proxy} from "../ERC1967/ERC1967Proxy.sol";
@@ -15,7 +15,8 @@ import {ProxyAdmin} from "./ProxyAdmin.sol";
  * include them in the ABI so this interface must be used to interact with it.
  */
 interface ITransparentUpgradeableProxy is IERC1967 {
-    function upgradeToAndCall(address, bytes calldata) external payable;
+    /// @dev See {UUPSUpgradeable-upgradeToAndCall}
+    function upgradeToAndCall(address newImplementation, bytes calldata data) external payable;
 }
 
 /**
@@ -28,7 +29,7 @@ interface ITransparentUpgradeableProxy is IERC1967 {
  *
  * 1. If any account other than the admin calls the proxy, the call will be forwarded to the implementation, even if
  * that call matches the {ITransparentUpgradeableProxy-upgradeToAndCall} function exposed by the proxy itself.
- * 2. If the admin calls the proxy, it can call the `upgradeToAndCall` function but any other call won't be forwarded to
+ * 2. If the admin calls the proxy, it can call the `upgradeToAndCall` function, but any other call won't be forwarded to
  * the implementation. If the admin tries to call a function on the implementation it will fail with an error indicating
  * the proxy admin cannot fallback to the target implementation.
  *
@@ -50,7 +51,8 @@ interface ITransparentUpgradeableProxy is IERC1967 {
  * IMPORTANT: This contract avoids unnecessary storage reads by setting the admin only during construction as an
  * immutable variable, preventing any changes thereafter. However, the admin slot defined in ERC-1967 can still be
  * overwritten by the implementation logic pointed to by this proxy. In such cases, the contract may end up in an
- * undesirable state where the admin slot is different from the actual admin.
+ * undesirable state where the admin slot is different from the actual admin. Relying on the value of the admin slot
+ * is generally fine if the implementation is trusted.
  *
  * WARNING: It is not recommended to extend this contract to add additional external functions. If you do so, the
  * compiler will not check that there are no selector conflicts, due to the note above. A selector clash between any new
@@ -83,7 +85,7 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
     /**
      * @dev Returns the admin of this proxy.
      */
-    function _proxyAdmin() internal virtual returns (address) {
+    function _proxyAdmin() internal view virtual returns (address) {
         return _admin;
     }
 

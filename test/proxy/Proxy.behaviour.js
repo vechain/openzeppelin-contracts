@@ -6,11 +6,16 @@ chai.use(require('chai-bn')(BN)); // init chai-bn
 const { expectThorRevert, expectRevertCheckStrategy } = require('../helpers/errors.js');
 const DummyImplementation = artifacts.require('DummyImplementation');
 
-module.exports = function shouldBehaveLikeProxy(createProxy, accounts) {
+module.exports = function shouldBehaveLikeProxy(createProxy, accounts, allowUninitialized = false) {
   it('cannot be initialized with a non-contract address', async function () {
     const nonContractAddress = accounts[0];
-    const initializeData = Buffer.from('');
-    await expectThorRevert(createProxy(nonContractAddress, initializeData), "", expectRevertCheckStrategy.unspecified);
+    const initializeData = '0x00'; // non-empty data to avoid uninitialized error
+    // VeChain: constructor reverts don't produce a parseable custom error in receipt
+    await expectThorRevert(
+      createProxy(nonContractAddress, initializeData),
+      '',
+      expectRevertCheckStrategy.unspecified,
+    );
   });
 
   // This is HH only
@@ -32,22 +37,36 @@ module.exports = function shouldBehaveLikeProxy(createProxy, accounts) {
   describe('without initialization', function () {
     const initializeData = Buffer.from('');
 
-    describe('when not sending balance', function () {
-      beforeEach('creating proxy', async function () {
-        this.proxy = (await createProxy(this.implementation, initializeData)).address;
+    if (allowUninitialized) {
+      describe('when not sending balance', function () {
+        beforeEach('creating proxy', async function () {
+          this.proxy = (await createProxy(this.implementation, initializeData)).address;
+        });
+
+        assertProxyInitialization({ value: 0, balance: 0 });
       });
 
-      assertProxyInitialization({ value: 0, balance: 0 });
-    });
+      describe('when sending some balance', function () {
+        const value = 10e5;
 
-    describe('when sending some balance', function () {
-      const value = 10e5;
-
-      it('reverts', async function () {
+        it('reverts', async function () {
+          await expectThorRevert(
+            createProxy(this.implementation, initializeData, { value }),
+            '',
+            expectRevertCheckStrategy.unspecified,
+          );
+        });
+      });
+    } else {
+      it('reverts without initialization', async function () {
+        // VeChain: constructor reverts don't produce a parseable custom error in receipt
         await expectThorRevert(
-          createProxy(this.implementation, initializeData, { value }), "", expectRevertCheckStrategy.unspecified,);
+          createProxy(this.implementation, initializeData),
+          '',
+          expectRevertCheckStrategy.unspecified,
+        );
       });
-    });
+    }
   });
 
   describe('initialization without parameters', function () {
@@ -70,7 +89,7 @@ module.exports = function shouldBehaveLikeProxy(createProxy, accounts) {
         const value = 10e5;
 
         it('reverts', async function () {
-          await expectThorRevert(createProxy(this.implementation, initializeData, { value }), "", expectRevertCheckStrategy.unspecified,);
+          await expectThorRevert(createProxy(this.implementation, initializeData, { value }), '', expectRevertCheckStrategy.unspecified);
         });
       });
     });
@@ -127,7 +146,7 @@ module.exports = function shouldBehaveLikeProxy(createProxy, accounts) {
         const value = 10e5;
 
         it('reverts', async function () {
-          await expectThorRevert(createProxy(this.implementation, initializeData, { value }), "", expectRevertCheckStrategy.unspecified,);
+          await expectThorRevert(createProxy(this.implementation, initializeData, { value }), '', expectRevertCheckStrategy.unspecified);
         });
       });
     });
@@ -167,7 +186,7 @@ module.exports = function shouldBehaveLikeProxy(createProxy, accounts) {
       const initializeData = new DummyImplementation('').contract.methods.reverts().encodeABI();
 
       it('reverts', async function () {
-        await expectThorRevert(createProxy(this.implementation, initializeData), "", expectRevertCheckStrategy.unspecified,);
+        await expectThorRevert(createProxy(this.implementation, initializeData), '', expectRevertCheckStrategy.unspecified);
       });
     });
   });
