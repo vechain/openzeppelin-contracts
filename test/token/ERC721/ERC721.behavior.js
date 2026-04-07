@@ -641,6 +641,14 @@ function shouldBehaveLikeERC721(owner, newOwner, approved, anotherApproved, oper
           );
         });
       });
+
+      context('when the owner is address zero', function () {
+        it('reverts', async function () {
+          await expectRevert.unspecified(
+            this.token.$_setApprovalForAll(constants.ZERO_ADDRESS, operator, true)
+          );
+        });
+      });
     });
 
     describe('getApproved', async function () {

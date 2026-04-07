@@ -29,6 +29,7 @@ contract('ERC721URIStorage', function (accounts) {
     const sampleUri = 'mock://mytoken';
 
     it('it is empty by default', async function () {
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal('');
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal('');
     });
 
@@ -38,6 +39,7 @@ contract('ERC721URIStorage', function (accounts) {
 
     it('can be set for a token id', async function () {
       await this.token.$_setTokenURI(firstTokenId, sampleUri);
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal(sampleUri);
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal(sampleUri);
     });
 
@@ -66,6 +68,7 @@ contract('ERC721URIStorage', function (accounts) {
       await this.token.setBaseURI(baseURI);
       await this.token.$_setTokenURI(firstTokenId, sampleUri);
 
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal(sampleUri);
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal(baseURI + sampleUri);
     });
 
@@ -75,18 +78,21 @@ contract('ERC721URIStorage', function (accounts) {
 
       const newBaseURI = 'https://api.example.com/v2/';
       await this.token.setBaseURI(newBaseURI);
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal(sampleUri);
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal(newBaseURI + sampleUri);
     });
 
     it('tokenId is appended to base URI for tokens with no URI', async function () {
       await this.token.setBaseURI(baseURI);
 
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal('');
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal(baseURI + firstTokenId);
     });
 
     it('tokens without URI can be burnt ', async function () {
       await this.token.$_burn(firstTokenId);
 
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal('');
       await expectRevert.unspecified(this.token.tokenURI(firstTokenId));
     });
 
@@ -95,6 +101,7 @@ contract('ERC721URIStorage', function (accounts) {
 
       await this.token.$_burn(firstTokenId);
 
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal(sampleUri);
       await expectRevert.unspecified(this.token.tokenURI(firstTokenId));
     });
 
@@ -102,9 +109,11 @@ contract('ERC721URIStorage', function (accounts) {
       await this.token.$_setTokenURI(firstTokenId, sampleUri);
 
       await this.token.$_burn(firstTokenId);
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal(sampleUri);
       await expectRevert.unspecified(this.token.tokenURI(firstTokenId));
 
       await this.token.$_mint(owner, firstTokenId);
+      expect(await this.token.$_suffixURI(firstTokenId)).to.be.equal(sampleUri);
       expect(await this.token.tokenURI(firstTokenId)).to.be.equal(sampleUri);
     });
   });
