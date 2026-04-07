@@ -1,10 +1,13 @@
 const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = constants;
+const { Enum } = require('../../helpers/enums');
+const RevertType = Enum('None', 'RevertWithoutMessage', 'RevertWithMessage', 'RevertWithCustomError', 'Panic');
 
 const { expect } = require('chai');
 
 const { shouldBehaveLikeERC1155 } = require('./ERC1155.behavior');
 const ERC1155Mock = artifacts.require('$ERC1155');
+const ERC1155ReceiverMock = artifacts.require('$ERC1155ReceiverMock');
 
 contract('ERC1155', function (accounts) {
   const [operator, tokenHolder, tokenBatchHolder, ...otherAccounts] = accounts;
@@ -191,6 +194,61 @@ contract('ERC1155', function (accounts) {
             expect(holderBatchBalances[i]).to.be.bignumber.equal(mintValues[i].sub(burnValues[i]));
           }
         });
+      });
+    });
+
+    describe('_updateWithAcceptanceCheck', function () {
+      const RECEIVER_SINGLE_MAGIC_VALUE = '0xf23a6e61';
+      const RECEIVER_BATCH_MAGIC_VALUE = '0xbc197c81';
+
+      beforeEach(async function () {
+        this.receiver = await ERC1155ReceiverMock.new(
+          RECEIVER_SINGLE_MAGIC_VALUE,
+          RECEIVER_BATCH_MAGIC_VALUE,
+          RevertType.None,
+        );
+      });
+
+      it('calls onERC1155Received when only one token is transferred', async function () {
+        const receipt = await this.token.$_updateWithAcceptanceCheck(
+          ZERO_ADDRESS,
+          this.receiver.address,
+          [tokenId],
+          [mintValue],
+          '0x',
+        );
+        await expectEvent.inTransaction(receipt.tx, ERC1155ReceiverMock, 'Received');
+      });
+
+      it('calls onERC1155BatchReceived when only one token is transferred and batch flag is set to true', async function () {
+        const receipt = await this.token.$_updateWithAcceptanceCheck(
+          ZERO_ADDRESS,
+          this.receiver.address,
+          [tokenId],
+          [mintValue],
+          '0x',
+          true,
+        );
+        await expectEvent.inTransaction(receipt.tx, ERC1155ReceiverMock, 'BatchReceived');
+      });
+
+      it('calls onERC1155BatchReceived when more than one token is transferred', async function () {
+        const receipt = await this.token.$_updateWithAcceptanceCheck(
+          ZERO_ADDRESS,
+          this.receiver.address,
+          tokenBatchIds,
+          mintValues,
+          '0x',
+        );
+        await expectEvent.inTransaction(receipt.tx, ERC1155ReceiverMock, 'BatchReceived');
+      });
+    });
+
+    describe('_setApprovalForAll', function () {
+      it("reverts when adding an operator over the zero account's tokens", async function () {
+        await expectRevert.unspecified(
+          this.token.$_setApprovalForAll(ZERO_ADDRESS, operator, true)
+        );
       });
     });
   });
