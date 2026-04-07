@@ -71,9 +71,28 @@ async function getStorageAt(
     return data;
 }
 
+/**
+ * Advances the chain by one block.
+ * On VeChain/Thor, polls eth_blockNumber until it increases (the SDK's evm_mine
+ * uses object-reference comparison and returns immediately without waiting).
+ */
+async function advanceBlock() {
+    const current = await latestBlock();
+    const maxWaitMs = 30000;
+    const pollIntervalMs = 200;
+    const deadline = Date.now() + maxWaitMs;
+    while (Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, pollIntervalMs));
+        const next = await latestBlock();
+        if (next > current) return;
+    }
+    throw new Error('advanceBlock: timed out waiting for next VeChain block');
+}
+
 module.exports = {
     latest,
     latestBlock,
     getStorageAt,
-    getThorProvider
+    getThorProvider,
+    advanceBlock,
 }

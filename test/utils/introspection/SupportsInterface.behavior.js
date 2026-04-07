@@ -79,6 +79,14 @@ const INTERFACES = {
     'castVoteWithReasonAndParamsBySig(uint256,uint8,address,string,bytes,bytes)',
   ],
   ERC2981: ['royaltyInfo(uint256,uint256)'],
+  ERC1363: [
+    'transferAndCall(address,uint256)',
+    'transferAndCall(address,uint256,bytes)',
+    'transferFromAndCall(address,address,uint256)',
+    'transferFromAndCall(address,address,uint256,bytes)',
+    'approveAndCall(address,uint256)',
+    'approveAndCall(address,uint256,bytes)',
+  ],
 };
 
 const INTERFACE_IDS = {};
@@ -101,7 +109,8 @@ function shouldSupportInterfaces(interfaces = []) {
       it('uses less than 40k gas', async function () {
         for (const k of interfaces) {
           const interfaceId = INTERFACE_IDS[k] ?? k;
-          expect(await this.contractUnderTest.supportsInterface.estimateGas(interfaceId)).to.be.lte(40000);
+          const gas = await this.contractUnderTest.supportsInterface.estimateGas(interfaceId);
+          expect(Number(gas)).to.be.lte(40000);
         }
       });
 
@@ -115,7 +124,8 @@ function shouldSupportInterfaces(interfaces = []) {
 
     describe('when the interfaceId is not supported', function () {
       it('uses less thank 40k', async function () {
-        expect(await this.contractUnderTest.supportsInterface.estimateGas(INVALID_ID)).to.be.lte(40000);
+        const gas = await this.contractUnderTest.supportsInterface.estimateGas(INVALID_ID);
+        expect(Number(gas)).to.be.lte(40000);
       });
 
       it('returns false', async function () {
@@ -128,11 +138,19 @@ function shouldSupportInterfaces(interfaces = []) {
         // skip interfaces for which we don't have a function list
         if (INTERFACES[k] === undefined) continue;
         for (const fnName of INTERFACES[k]) {
-          const fnSig = FN_SIGNATURES[fnName];
-          expect(this.contractUnderTest.abi.filter(fn => fn.signature === fnSig).length).to.equal(
-            1,
-            `did not find ${fnName}`,
-          );
+          // Support both truffle contracts (.abi) and ethers contracts (.interface)
+          if (this.contractUnderTest.interface) {
+            // ethers v6: use interface.getFunction which throws if not found
+            expect(() => this.contractUnderTest.interface.getFunction(fnName)).to.not.throw(
+              `did not find ${fnName}`,
+            );
+          } else {
+            const fnSig = FN_SIGNATURES[fnName];
+            expect(this.contractUnderTest.abi.filter(fn => fn.signature === fnSig).length).to.equal(
+              1,
+              `did not find ${fnName}`,
+            );
+          }
         }
       }
     });

@@ -62,7 +62,8 @@
             "./test/token/ERC20/",
             "./test/helpers/",
             "./test/governance/utils/Votes.behavior.js",
-            "./test/governance/utils/EIP6372.behavior.js"
+            "./test/governance/utils/EIP6372.behavior.js",
+            "./test/utils/introspection/SupportsInterface.behavior.js"
         ]
     },
     {
