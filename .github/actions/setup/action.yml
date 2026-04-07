@@ -1,11 +1,12 @@
 name: Setup
+description: Setup Node.js environment and cache dependencies
 
 runs:
   using: composite
   steps:
     - uses: actions/setup-node@v3
       with:
-        node-version: 18.x
+        node-version: 22.18
     - uses: actions/cache@v3
       id: cache
       with:
