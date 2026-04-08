@@ -234,17 +234,12 @@ library RLP {
         uint256 length = input.length;
         if (length <= SHORT_THRESHOLD) {
             // Encode "short-bytes" as
-            // [ offset + input.length | input ]
+            // [ offset + input.length | input ]
             assembly ("memory-safe") {
                 result := mload(0x40)
                 mstore(result, add(length, 1)) // length of the encoded data: 1 (prefix) + input.length
                 mstore8(add(result, 0x20), add(length, offset)) // prefix: offset + input.length
-                // copy input (no mcopy: word-by-word forward copy)
-                let dst_ := add(result, 0x21)
-                let src_ := add(input, 0x20)
-                for { let i_ := 0 } lt(i_, length) { i_ := add(i_, 32) } {
-                    mstore(add(dst_, i_), mload(add(src_, i_)))
-                }
+                mcopy(add(result, 0x21), add(input, 0x20), length) // input
                 mstore(0x40, add(result, add(length, 0x21))) // reserve memory
             }
         } else {
@@ -256,12 +251,7 @@ library RLP {
                 mstore(result, add(add(length, lenlength), 1)) // length of the encoded data: 1 (prefix) + input.length.length + input.length
                 mstore8(add(result, 0x20), add(add(lenlength, offset), SHORT_THRESHOLD)) // prefix: SHORT_THRESHOLD + offset + input.length.length
                 mstore(add(result, 0x21), shl(sub(256, mul(8, lenlength)), length)) // input.length
-                // copy input (no mcopy: word-by-word forward copy)
-                let dst__ := add(result, add(lenlength, 0x21))
-                let src__ := add(input, 0x20)
-                for { let i__ := 0 } lt(i__, length) { i__ := add(i__, 32) } {
-                    mstore(add(dst__, i__), mload(add(src__, i__)))
-                }
+                mcopy(add(result, add(lenlength, 0x21)), add(input, 0x20), length) // input
                 mstore(0x40, add(result, add(add(length, lenlength), 0x21))) // reserve memory
             }
         }

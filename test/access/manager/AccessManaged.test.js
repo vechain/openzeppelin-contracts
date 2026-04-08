@@ -60,15 +60,28 @@ contract('AccessManaged', function (accounts) {
       });
 
       it('succeeds if the operation is scheduled', async function () {
-        const delay = time.duration.hours(12);
+        const hre = require('hardhat');
         const calldata = await this.managed.contract.methods[method]().encodeABI();
 
-        const scheduledAt = (await latest()).addn(1);
-        const when = scheduledAt.add(delay);
-        await time.increaseTo(scheduledAt);
-        await this.authority.schedule(this.managed.address, calldata, when, { from: roleMember });
-
-        await time.increaseTo(when);
+        if (hre.network.name === 'vechain') {
+          // VeChain: evm_increaseTime does not advance block timestamps (uses real wall-clock time).
+          // Revoke and re-grant with a short execution delay, then wait for real time to pass.
+          // (Simply reducing the delay via re-grant takes `oldDelay - newDelay` seconds to take effect.)
+          const shortDelay = 2; // seconds
+          await this.authority.$_revokeRole(this.role, roleMember);
+          await this.authority.$_grantRole(this.role, roleMember, 0, shortDelay);
+          // Schedule with when=0 to use the minimum allowed timepoint (now + shortDelay).
+          await this.authority.schedule(this.managed.address, calldata, 0, { from: roleMember });
+          // Wait for the execution delay to pass, plus buffer for block timestamp propagation.
+          await new Promise(resolve => setTimeout(resolve, (shortDelay + 3) * 1000));
+        } else {
+          const delay = time.duration.hours(12);
+          const scheduledAt = (await latest()).addn(1);
+          const when = scheduledAt.add(delay);
+          await time.increaseTo(scheduledAt);
+          await this.authority.schedule(this.managed.address, calldata, when, { from: roleMember });
+          await time.increaseTo(when);
+        }
 
         await this.managed.methods[method]({ from: roleMember });
       });

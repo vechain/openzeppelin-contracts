@@ -26,14 +26,14 @@
     "version": "scripts/release/version.sh",
     "test": "hardhat test",
     "test:solo": "docker-compose up -d && sleep 5 && env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; docker-compose down; exit $ret",
-    "test:solo:gha": "docker compose up -d && sleep 5 && env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; docker compose down; exit $ret",
+    "test:solo:gha": "docker compose up -d --wait && env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; docker compose down; exit $ret",
     "test:solo:dir": "sh -c 'DIR=\"$1\"; find \"$DIR\" -type f -name \"*test.js\" -exec sh -c \"npm run test:solo {}\" \\;' _",
     "test:inheritance": "scripts/checks/inheritance-ordering.js artifacts/build-info/*",
     "test:generation": "scripts/checks/generation.sh",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
     "slither": "npm run clean && slither .",
-    "test:solo:gha:sharding": "docker compose up -d && sleep 5 && hardhat pre-test;ret=$?; env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; hardhat post-test; ret=$?; docker compose down; exit $ret",
-    "test:solo:gha:file": "sh -c 'FILE=\"$1\"; docker compose up -d && sleep 5 && env COMPILE_MODE=\"production\" hardhat test --network vechain \"$FILE\"; ret=$?; docker compose down; exit $ret' _"
+    "test:solo:gha:sharding": "docker compose up -d --wait && hardhat pre-test;ret=$?; env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; hardhat post-test; ret=$?;",
+    "test:solo:gha:file": "sh -c 'FILE=\"$1\"; docker compose up -d --wait && env COMPILE_MODE=\"production\" hardhat test --network vechain \"$FILE\"; ret=$?; docker compose down; exit $ret' _"
   },
   "repository": {
     "type": "git",

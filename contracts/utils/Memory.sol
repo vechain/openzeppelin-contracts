@@ -101,10 +101,7 @@ library Memory {
         assembly ("memory-safe") {
             result := mload(0x40)
             mstore(result, len)
-            let dst := add(result, 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(ptr, i)))
-            }
+            mcopy(add(result, 0x20), ptr, len)
             mstore(0x40, add(add(result, len), 0x20))
         }
     }

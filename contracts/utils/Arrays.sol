@@ -529,12 +529,7 @@ library Arrays {
         // allocate and copy
         address[] memory result = new address[](end - start);
         assembly ("memory-safe") {
-            let dst := add(result, 0x20)
-            let src := add(add(array, 0x20), mul(start, 0x20))
-            let len := mul(sub(end, start), 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(result, 0x20), add(add(array, 0x20), mul(start, 0x20)), mul(sub(end, start), 0x20))
         }
 
         return result;
@@ -564,12 +559,7 @@ library Arrays {
         // allocate and copy
         bytes32[] memory result = new bytes32[](end - start);
         assembly ("memory-safe") {
-            let dst := add(result, 0x20)
-            let src := add(add(array, 0x20), mul(start, 0x20))
-            let len := mul(sub(end, start), 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(result, 0x20), add(add(array, 0x20), mul(start, 0x20)), mul(sub(end, start), 0x20))
         }
 
         return result;
@@ -599,12 +589,7 @@ library Arrays {
         // allocate and copy
         uint256[] memory result = new uint256[](end - start);
         assembly ("memory-safe") {
-            let dst := add(result, 0x20)
-            let src := add(add(array, 0x20), mul(start, 0x20))
-            let len := mul(sub(end, start), 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(result, 0x20), add(add(array, 0x20), mul(start, 0x20)), mul(sub(end, start), 0x20))
         }
 
         return result;
@@ -634,12 +619,7 @@ library Arrays {
 
         // move and resize
         assembly ("memory-safe") {
-            let dst := add(array, 0x20)
-            let src := add(add(array, 0x20), mul(start, 0x20))
-            let len := mul(sub(end, start), 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(array, 0x20), add(add(array, 0x20), mul(start, 0x20)), mul(sub(end, start), 0x20))
             mstore(array, sub(end, start))
         }
 
@@ -687,12 +667,11 @@ library Arrays {
 
         // replace
         assembly ("memory-safe") {
-            let dst := add(add(array, 0x20), mul(pos, 0x20))
-            let src := add(add(replacement, 0x20), mul(offset, 0x20))
-            let len := mul(length, 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(
+                add(add(array, 0x20), mul(pos, 0x20)),
+                add(add(replacement, 0x20), mul(offset, 0x20)),
+                mul(length, 0x20)
+            )
         }
 
         return array;
@@ -722,12 +701,7 @@ library Arrays {
 
         // move and resize
         assembly ("memory-safe") {
-            let dst := add(array, 0x20)
-            let src := add(add(array, 0x20), mul(start, 0x20))
-            let len := mul(sub(end, start), 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(array, 0x20), add(add(array, 0x20), mul(start, 0x20)), mul(sub(end, start), 0x20))
             mstore(array, sub(end, start))
         }
 
@@ -775,12 +749,11 @@ library Arrays {
 
         // replace
         assembly ("memory-safe") {
-            let dst := add(add(array, 0x20), mul(pos, 0x20))
-            let src := add(add(replacement, 0x20), mul(offset, 0x20))
-            let len := mul(length, 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(
+                add(add(array, 0x20), mul(pos, 0x20)),
+                add(add(replacement, 0x20), mul(offset, 0x20)),
+                mul(length, 0x20)
+            )
         }
 
         return array;
@@ -810,12 +783,7 @@ library Arrays {
 
         // move and resize
         assembly ("memory-safe") {
-            let dst := add(array, 0x20)
-            let src := add(add(array, 0x20), mul(start, 0x20))
-            let len := mul(sub(end, start), 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(array, 0x20), add(add(array, 0x20), mul(start, 0x20)), mul(sub(end, start), 0x20))
             mstore(array, sub(end, start))
         }
 
@@ -863,12 +831,11 @@ library Arrays {
 
         // replace
         assembly ("memory-safe") {
-            let dst := add(add(array, 0x20), mul(pos, 0x20))
-            let src := add(add(replacement, 0x20), mul(offset, 0x20))
-            let len := mul(length, 0x20)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(
+                add(add(array, 0x20), mul(pos, 0x20)),
+                add(add(replacement, 0x20), mul(offset, 0x20)),
+                mul(length, 0x20)
+            )
         }
 
         return array;

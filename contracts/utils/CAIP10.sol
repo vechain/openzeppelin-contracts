@@ -49,6 +49,6 @@ library CAIP10 {
         bytes memory buffer = bytes(caip10);
 
         uint256 pos = buffer.lastIndexOf(":");
-        return (string(buffer.slice(0, pos)), string(buffer.slice(pos + 1)));
+        return (string(buffer.slice(0, pos)), string(buffer.slice(pos + 1, buffer.length)));
     }
 }

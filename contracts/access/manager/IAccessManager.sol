@@ -79,6 +79,7 @@ interface IAccessManager {
     error AccessManagerNotScheduled(bytes32 operationId);
     error AccessManagerNotReady(bytes32 operationId);
     error AccessManagerExpired(bytes32 operationId);
+    error AccessManagerLockedAccount(address target);
     error AccessManagerLockedRole(uint64 roleId);
     error AccessManagerLockedFunction(bytes4 selector);
     error AccessManagerBadConfirmation();

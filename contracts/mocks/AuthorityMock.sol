@@ -26,10 +26,9 @@ contract AuthorityNoDelayMock is IAuthority {
         _immediate = immediate;
     }
 
-    function forwardCall(address target, bytes calldata data) external returns (bytes memory) {
-        (bool success, bytes memory result) = target.call(data);
+    function forwardCall(address target, bytes calldata data) external {
+        (bool success,) = target.call(data);
         require(success, "forwardCall failed");
-        return result;
     }
 }
 
@@ -69,7 +68,7 @@ contract AuthoritiyObserveIsConsuming {
         return (false, 1);
     }
 
-    function consumeScheduledOp(address caller, bytes memory data) public {
+    function consumeScheduledOp(address caller, bytes calldata data) public {
         emit ConsumeScheduledOpCalled(caller, data, IAccessManaged(msg.sender).isConsumingScheduledOp());
     }
 }

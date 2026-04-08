@@ -109,10 +109,7 @@ library Accumulators {
                 let slice := mload(add(it, 0x20))
                 let offset := and(slice, shr(128, not(0)))
                 let length := shr(128, slice)
-                // word-by-word copy (no mcopy)
-                for { let i := 0 } lt(i, length) { i := add(i, 32) } {
-                    mstore(add(ptr, i), mload(add(offset, i)))
-                }
+                mcopy(ptr, offset, length)
                 ptr := add(ptr, length)
             }
             mstore(result, sub(ptr, add(result, 0x20)))

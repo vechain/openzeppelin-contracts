@@ -31,7 +31,7 @@ library SignatureChecker {
 
     /**
      * @dev Checks if a signature is valid for a given signer and data hash. The signature is validated
-     * against the signer smart contract using ERC1271.
+     * against the signer smart contract using ERC-1271.
      *
      * NOTE: Unlike ECDSA signatures, contract signatures are revocable, and the outcome of this function can thus
      * change through time. It could return true at block N and false at block N+1 (or the opposite).
@@ -40,13 +40,26 @@ library SignatureChecker {
         address signer,
         bytes32 hash,
         bytes memory signature
-    ) internal view returns (bool) {
-        (bool success, bytes memory result) = signer.staticcall(
-            abi.encodeCall(IERC1271.isValidSignature, (hash, signature))
-        );
-        return (success &&
-            result.length >= 32 &&
-            abi.decode(result, (bytes32)) == bytes32(IERC1271.isValidSignature.selector));
+    ) internal view returns (bool result) {
+        bytes4 selector = IERC1271.isValidSignature.selector;
+        uint256 length = signature.length;
+
+        assembly ("memory-safe") {
+            // Encoded calldata is :
+            // [ 0x00 - 0x03 ] <selector>
+            // [ 0x04 - 0x23 ] <hash>
+            // [ 0x24 - 0x43 ] <signature offset> (0x40)
+            // [ 0x44 - 0x63 ] <signature length>
+            // [ 0x64 - ...  ] <signature data>
+            let ptr := mload(0x40)
+            mstore(ptr, selector)
+            mstore(add(ptr, 0x04), hash)
+            mstore(add(ptr, 0x24), 0x40)
+            mcopy(add(ptr, 0x44), signature, add(length, 0x20))
+
+            let success := staticcall(gas(), signer, ptr, add(length, 0x64), 0x00, 0x20)
+            result := and(success, and(gt(returndatasize(), 0x1f), eq(mload(0x00), selector)))
+        }
     }
 
     /**
@@ -70,7 +83,7 @@ library SignatureChecker {
             return isValidSignatureNow(address(bytes20(signer)), hash, signature);
         } else {
             (bool success, bytes memory result) = address(bytes20(signer)).staticcall(
-                abi.encodeCall(IERC7913SignatureVerifier.verify, (signer.slice(20), hash, signature))
+                abi.encodeCall(IERC7913SignatureVerifier.verify, (signer.slice(20, signer.length), hash, signature))
             );
             return (success &&
                 result.length >= 32 &&

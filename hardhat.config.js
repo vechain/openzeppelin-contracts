@@ -55,7 +55,7 @@ const argv = require('yargs/yargs')()
     evmVersion: {
       alias: 'evmVersion',
       type: 'string',
-      default: 'shanghai',
+      default: 'osaka',
     },
     coinmarketcap: {
       alias: 'coinmarketcapApiKey',

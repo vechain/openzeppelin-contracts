@@ -220,7 +220,7 @@ library InteroperableAddress {
         unchecked {
             // length fits in a uint8: log256(type(uint256).max) is 31
             uint256 length = Math.log256(chainid) + 1;
-            return abi.encodePacked(chainid).slice(32 - length);
+            return abi.encodePacked(chainid).slice(32 - length, 32);
         }
     }
 

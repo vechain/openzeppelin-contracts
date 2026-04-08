@@ -68,16 +68,6 @@ library Bytes {
     }
 
     /**
-     * @dev Copies the content of `buffer`, from `start` (included) to the end of `buffer` into a new bytes object in
-     * memory.
-     *
-     * NOTE: replicates the behavior of https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice[Javascript's `Array.slice`]
-     */
-    function slice(bytes memory buffer, uint256 start) internal pure returns (bytes memory) {
-        return slice(buffer, start, buffer.length);
-    }
-
-    /**
      * @dev Copies the content of `buffer`, from `start` (included) to `end` (excluded) into a new bytes object in
      * memory. The `end` argument is truncated to the length of the `buffer`.
      *
@@ -91,12 +81,7 @@ library Bytes {
         // allocate and copy
         bytes memory result = new bytes(end - start);
         assembly ("memory-safe") {
-            let dst := add(result, 0x20)
-            let src := add(add(buffer, 0x20), start)
-            let len := sub(end, start)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(result, 0x20), add(add(buffer, 0x20), start), sub(end, start))
         }
 
         return result;
@@ -126,13 +111,8 @@ library Bytes {
 
         // move and resize
         assembly ("memory-safe") {
-            let dst := add(buffer, 0x20)
-            let src := add(add(buffer, 0x20), start)
-            let len := sub(end, start)
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
-            mstore(buffer, len)
+            mcopy(add(buffer, 0x20), add(add(buffer, 0x20), start), sub(end, start))
+            mstore(buffer, sub(end, start))
         }
 
         return buffer;
@@ -150,7 +130,7 @@ library Bytes {
         return replace(buffer, pos, replacement, 0, replacement.length);
     }
 
-    /**
+     /**
      * @dev Replaces bytes in `buffer` starting at `pos` with bytes from `replacement` starting at `offset`.
      * Copies at most `length` bytes from `replacement` to `buffer`.
      *
@@ -175,12 +155,7 @@ library Bytes {
 
         // replace
         assembly ("memory-safe") {
-            let dst := add(add(buffer, 0x20), pos)
-            let src := add(add(replacement, 0x20), offset)
-            let len := length
-            for { let i := 0 } lt(i, len) { i := add(i, 32) } {
-                mstore(add(dst, i), mload(add(src, i)))
-            }
+            mcopy(add(add(buffer, 0x20), pos), add(add(replacement, 0x20), offset), length)
         }
 
         return buffer;
@@ -207,12 +182,7 @@ library Bytes {
         for (uint256 i = 0; i < buffers.length; ++i) {
             bytes memory input = buffers[i];
             assembly ("memory-safe") {
-                let dst := add(result, offset)
-                let src := add(input, 0x20)
-                let len := mload(input)
-                for { let i_ := 0 } lt(i_, len) { i_ := add(i_, 32) } {
-                    mstore(add(dst, i_), mload(add(src, i_)))
-                }
+                mcopy(add(result, offset), add(input, 0x20), mload(input))
             }
             unchecked {
                 offset += input.length;
@@ -221,6 +191,7 @@ library Bytes {
 
         return result;
     }
+
 
     /**
      * @dev Split each byte in `input` into two nibbles (4 bits each)
