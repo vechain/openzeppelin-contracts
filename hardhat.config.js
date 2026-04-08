@@ -119,7 +119,7 @@ module.exports = {
         mnemonic: "denial kitchen pet squirrel other broom bar gas better priority spoil cross",
         count: 10,
       },
-      gas: 50000000,
+      gas: 16777216, // thor MaxTxGasLimit
     },
     vechain_galactica_testnet: {
       url: "https://galactica.dev.node.vechain.org",

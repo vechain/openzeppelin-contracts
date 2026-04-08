@@ -1,6 +1,6 @@
 services:
   thor-solo:
-    image: vechain/thor:v2.4.3
+    image: vechain/thor:osaka
     container_name: thor-solo
     user: root
     ports:
