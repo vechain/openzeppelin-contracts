@@ -193,8 +193,9 @@ contract('MerkleProof', function () {
       const proof = merkleTree.getMultiProof(proofLeaves);
       const proofFlags = merkleTree.getProofFlags(proofLeaves, proof);
 
-      expect(await this.merkleProof.$processMultiProof(proof, proofFlags, proofLeaves)).to.deep.equal(root);
-      expect(await this.merkleProof.$processMultiProofCalldata(proof, proofFlags, proofLeaves)).to.deep.equal(root);
+      const rootHex = '0x' + root.toString('hex');
+      expect(await this.merkleProof.$processMultiProof(proof, proofFlags, proofLeaves)).to.equal(rootHex);
+      expect(await this.merkleProof.$processMultiProofCalldata(proof, proofFlags, proofLeaves)).to.equal(rootHex);
     });
 
     it('reverts processing manipulated proofs with a zero-value node at depth 1', async function () {

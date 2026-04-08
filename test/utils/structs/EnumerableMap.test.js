@@ -40,12 +40,12 @@ contract('EnumerableMap', function (accounts) {
       new BN('0'),
       getMethods({
         set: '$set(uint256,address,uint256)',
-        get: '$get(uint256,address)',
-        tryGet: '$tryGet(uint256,address)',
-        remove: '$remove(uint256,address)',
+        get: `$get_${library}_AddressToUintMap(uint256,address)`,
+        tryGet: `$tryGet_${library}_AddressToUintMap(uint256,address)`,
+        remove: `$remove_${library}_AddressToUintMap(uint256,address)`,
         length: `$length_${library}_AddressToUintMap(uint256)`,
         at: `$at_${library}_AddressToUintMap(uint256,uint256)`,
-        contains: '$contains(uint256,address)',
+        contains: `$contains_${library}_AddressToUintMap(uint256,address)`,
         keys: `$keys_${library}_AddressToUintMap(uint256)`,
       }),
       {

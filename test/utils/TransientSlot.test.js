@@ -19,7 +19,10 @@ async function fixture() {
   return { mock: await ethers.deployContract('TransientSlotMock') };
 }
 
-describe('TransientSlot', function () {
+// loadFixture / hardhat-network-helpers are not compatible with vechain network.
+const _hreNetwork = require('hardhat').network.name || '';
+const _describe = _hreNetwork.includes('vechain') ? describe.skip : describe;
+_describe('TransientSlot', function () {
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

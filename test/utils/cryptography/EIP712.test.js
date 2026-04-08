@@ -55,7 +55,7 @@ contract('EIP712', function (accounts) {
           it('adjusts when behind proxy', async function () {
             const factory = await Clones.new();
             const cloneReceipt = await factory.$clone(this.eip712.address);
-            const cloneAddress = cloneReceipt.logs.find(({ event }) => event === 'return$clone').args.instance;
+            const cloneAddress = cloneReceipt.logs.find(({ event }) => event === 'return$clone_address').args.instance;
             const clone = new EIP712Verifier(cloneAddress);
 
             const cloneDomain = { ...this.domain, verifyingContract: clone.address };
