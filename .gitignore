@@ -70,3 +70,6 @@ contracts-exposed
 .last_confs
 certora_*
 .zip-output-url.txt
+
+$ Visual Studio Code
+.vscode/

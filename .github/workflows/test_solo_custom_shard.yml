@@ -1,0 +1,59 @@
+name: Thor compatibility tests (custom thor build)
+
+on:
+  workflow_dispatch:
+    inputs:
+      thor_ref:
+        description: 'vechain/thor branch, tag, or commit SHA. Leave empty to use the latest GitHub release.'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  test-solo:
+    name: Test Solo (custom)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sharding: [access,finance,governance,gov_timelock,gov_utils_extensions,metatx,proxy,token_ERC20,token_ERC721,token_ERC721Enumerable,token_ERC721Wrapper,token_ERC721_extensions,token_ERC1155,utils]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up environment
+        uses: ./.github/actions/setup
+
+      - name: Check Docker Compose
+        run: docker compose --version
+
+      - name: Resolve thor ref
+        id: thor
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REF: ${{ inputs.thor_ref }}
+        run: |
+          set -euo pipefail
+          REF="${INPUT_REF}"
+          if [ -z "${REF}" ]; then
+            REF="$(gh api repos/vechain/thor/releases/latest --jq .tag_name)"
+            echo "No thor_ref provided, using latest release: ${REF}"
+          fi
+          # Sanitize for use as a docker tag (replace any char outside [A-Za-z0-9_.-] with '-')
+          SAFE_TAG="$(echo "${REF}" | sed 's#[^A-Za-z0-9_.-]#-#g')"
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "image=vechain/thor:${SAFE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Clone vechain/thor @ ${{ steps.thor.outputs.ref }}
+        run: |
+          git clone https://github.com/vechain/thor.git thor-src
+          cd thor-src
+          git fetch --all --tags
+          git checkout "${{ steps.thor.outputs.ref }}"
+
+      - name: Build thor docker image
+        working-directory: thor-src
+        run: docker build -t "${{ steps.thor.outputs.image }}" .
+
+      - name: Run Solo Tests
+        env:
+          THOR_IMAGE: ${{ steps.thor.outputs.image }}
+        run: npm run test:solo:gha:sharding --shard_id=${{matrix.sharding}}
