@@ -1,8 +1,6 @@
 services:
   thor-solo:
-    image: ${THOR_IMAGE:-vechain/thor:latest}
-    build:
-      context: https://github.com/vechain/thor.git#${THOR_REF:-master}
+    image: vechain/thor:gha
     container_name: thor-solo
     user: root
     ports:
