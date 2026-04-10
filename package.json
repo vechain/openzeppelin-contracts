@@ -32,8 +32,8 @@
     "test:generation": "scripts/checks/generation.sh",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
     "slither": "npm run clean && slither .",
-    "test:solo:gha:sharding": "docker compose up -d --wait && hardhat pre-test;ret=$?; env COMPILE_MODE=\"production\" hardhat test --network vechain; ret=$?; hardhat post-test;docker compose down; exit $ret",
-    "test:solo:gha:file": "sh -c 'FILE=\"$1\"; docker compose up -d --wait && env COMPILE_MODE=\"production\" hardhat test --network vechain \"$FILE\"; ret=$?; docker compose down; exit $ret' _"
+    "test:solo:gha:sharding": "docker compose up -d --wait && hardhat pre-test; env COMPILE_MODE=\"production\" hardhat test --network vechain; hardhat post-test;docker compose down; exit $ret",
+    "test:solo:gha:file": "sh -c 'FILE=\"$1\"; docker compose up -d --wait && env COMPILE_MODE=\"production\" hardhat test --network vechain \"$FILE\"; docker compose down; exit $ret' _"
   },
   "repository": {
     "type": "git",
