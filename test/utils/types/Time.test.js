@@ -123,11 +123,26 @@ contract('Time', function () {
             minSetback,
           );
 
-          const timepoint = await clock.timestamp().then(BigInt);
+          // Derive the contract's actual timepoint from the result to avoid
+          // race conditions between separate eth_call invocations.
+          // The contract returns: effect = timestamp() + setback
+          // Unpack result[0] to learn what the contract computed for valueBefore,
+          // which tells us isPast and thus the setback.
+          const unpacked = unpackDelay(BigInt(result[0].toString()));
+          const actualValueBefore = unpacked.valueBefore;
+          const actualSetback = max(minSetback, actualValueBefore - newvalueAfter, 0n);
+          const timepoint = BigInt(result[1].toString()) - actualSetback;
+
           const isPast = effect <= timepoint;
           const expectedvalueBefore = isPast ? valueAfter : valueBefore;
           const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n);
 
+          // Verify the unpacked fields match expectations
+          expect(unpacked.valueAfter).to.equal(newvalueAfter);
+          expect(unpacked.valueBefore).to.equal(expectedvalueBefore);
+          expect(unpacked.effect).to.equal(timepoint + expectedSetback);
+
+          // Verify the packed result and effect
           expect(result[0]).to.be.bignumber.equal(
             String(
               packDelay({
