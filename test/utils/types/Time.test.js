@@ -1,7 +1,7 @@
 require('@openzeppelin/test-helpers');
 
 const { expect } = require('chai');
-const { clock, clockFromReceipt } = require('../../helpers/time');
+const { clock } = require('../../helpers/time');
 const { product, max } = require('../../helpers/iterate');
 
 const Time = artifacts.require('$Time');
@@ -95,13 +95,13 @@ contract('Time', function () {
       for (const effect of effectSamplesForTimepoint(initTimepoint)) {
         const delay = packDelay({ valueBefore, valueAfter, effect });
 
-        const getReceipt = await this.mock.$get(delay);
-        const getTimepoint = BigInt(await clockFromReceipt.timestamp(getReceipt.receipt));
+        const getResult = await this.mock.$get(delay);
+        const getTimepoint = await clock.timestamp().then(BigInt);
         const isPastGet = effect <= getTimepoint;
-        expect(getReceipt).to.be.bignumber.equal(String(isPastGet ? valueAfter : valueBefore));
+        expect(getResult).to.be.bignumber.equal(String(isPastGet ? valueAfter : valueBefore));
 
         const result = await this.mock.$getFull(delay);
-        const fullTimepoint = BigInt(await clockFromReceipt.timestamp(result.receipt));
+        const fullTimepoint = await clock.timestamp().then(BigInt);
         const isPastFull = effect <= fullTimepoint;
         expect(result[0]).to.be.bignumber.equal(String(isPastFull ? valueAfter : valueBefore));
         expect(result[1]).to.be.bignumber.equal(String(isPastFull ? 0n : valueAfter));
@@ -123,7 +123,7 @@ contract('Time', function () {
             minSetback,
           );
 
-          const timepoint = BigInt(await clockFromReceipt.timestamp(result.receipt));
+          const timepoint = await clock.timestamp().then(BigInt);
           const isPast = effect <= timepoint;
           const expectedvalueBefore = isPast ? valueAfter : valueBefore;
           const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n);
