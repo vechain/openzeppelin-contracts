@@ -30,7 +30,7 @@ contract('ERC20', function (accounts) {
       shouldBehaveLikeERC20(initialSupply, accounts, { forcedApproval });
 
       it('has a name', async function () {
-        expect(await this.token.name()).to.equal(name + "_test");
+        expect(await this.token.name()).to.equal(name);
       });
 
       it('has a symbol', async function () {
