@@ -11,9 +11,10 @@ RUN git clone ${THOR_REPO} . && \
     for i in 1 2 3; do go mod download && break || sleep 5; done && \
     make all
 
-FROM alpine:3.23.3
-RUN apk add --no-cache ca-certificates
-RUN apk add --no-cache libssl3 libcrypto3 busybox
+FROM alpine:3.21.6
+
+RUN apk add --no-cache ca-certificates libssl3 libcrypto3
+
 COPY --from=builder /go/thor/bin/thor /usr/local/bin/
 COPY --from=builder /go/thor/bin/disco /usr/local/bin/
 RUN adduser -D -s /bin/ash thor
