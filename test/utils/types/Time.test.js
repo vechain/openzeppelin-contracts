@@ -1,7 +1,7 @@
 require('@openzeppelin/test-helpers');
 
 const { expect } = require('chai');
-const { clock } = require('../../helpers/time');
+const { clock, clockFromReceipt } = require('../../helpers/time');
 const { product, max } = require('../../helpers/iterate');
 
 const Time = artifacts.require('$Time');
@@ -88,41 +88,45 @@ contract('Time', function () {
     });
 
     it('get & getFull', async function () {
-      const timepoint = await clock.timestamp().then(BigInt);
+      const initTimepoint = await clock.timestamp().then(BigInt);
       const valueBefore = 24194n;
       const valueAfter = 4214143n;
 
-      for (const effect of effectSamplesForTimepoint(timepoint)) {
-        const isPast = effect <= timepoint;
-
+      for (const effect of effectSamplesForTimepoint(initTimepoint)) {
         const delay = packDelay({ valueBefore, valueAfter, effect });
 
-        expect(await this.mock.$get(delay)).to.be.bignumber.equal(String(isPast ? valueAfter : valueBefore));
+        const getReceipt = await this.mock.$get(delay);
+        const getTimepoint = BigInt(await clockFromReceipt.timestamp(getReceipt.receipt));
+        const isPastGet = effect <= getTimepoint;
+        expect(getReceipt).to.be.bignumber.equal(String(isPastGet ? valueAfter : valueBefore));
 
         const result = await this.mock.$getFull(delay);
-        expect(result[0]).to.be.bignumber.equal(String(isPast ? valueAfter : valueBefore));
-        expect(result[1]).to.be.bignumber.equal(String(isPast ? 0n : valueAfter));
-        expect(result[2]).to.be.bignumber.equal(String(isPast ? 0n : effect));
+        const fullTimepoint = BigInt(await clockFromReceipt.timestamp(result.receipt));
+        const isPastFull = effect <= fullTimepoint;
+        expect(result[0]).to.be.bignumber.equal(String(isPastFull ? valueAfter : valueBefore));
+        expect(result[1]).to.be.bignumber.equal(String(isPastFull ? 0n : valueAfter));
+        expect(result[2]).to.be.bignumber.equal(String(isPastFull ? 0n : effect));
       }
     });
 
     it('withUpdate', async function () {
-      const timepoint = await clock.timestamp().then(BigInt);
+      const initTimepoint = await clock.timestamp().then(BigInt);
       const valueBefore = 24194n;
       const valueAfter = 4214143n;
       const newvalueAfter = 94716n;
 
-      for (const effect of effectSamplesForTimepoint(timepoint))
+      for (const effect of effectSamplesForTimepoint(initTimepoint))
         for (const minSetback of [...SOME_VALUES, MAX_UINT32]) {
-          const isPast = effect <= timepoint;
-          const expectedvalueBefore = isPast ? valueAfter : valueBefore;
-          const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n);
-
           const result = await this.mock.$withUpdate(
             packDelay({ valueBefore, valueAfter, effect }),
             newvalueAfter,
             minSetback,
           );
+
+          const timepoint = BigInt(await clockFromReceipt.timestamp(result.receipt));
+          const isPast = effect <= timepoint;
+          const expectedvalueBefore = isPast ? valueAfter : valueBefore;
+          const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n);
 
           expect(result[0]).to.be.bignumber.equal(
             String(
