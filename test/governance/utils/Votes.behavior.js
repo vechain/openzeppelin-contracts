@@ -1,4 +1,5 @@
 const { constants, expectEvent, expectRevert, time } = require('@openzeppelin/test-helpers');
+const { advanceBlock } = require('../../helpers/utils');
 
 const { MAX_UINT256, ZERO_ADDRESS } = constants;
 
@@ -76,7 +77,7 @@ function shouldBehaveLikeVotes(accounts, tokens, { mode = 'blocknumber', fungibl
         expect(await this.votes.delegates(accounts[1])).to.be.equal(accounts[1]);
         expect(await this.votes.getVotes(accounts[1])).to.be.bignumber.equal(weight);
         expect(await this.votes.getPastVotes(accounts[1], timepoint - 1)).to.be.bignumber.equal('0');
-        await time.advanceBlock();
+        await advanceBlock();
         expect(await this.votes.getPastVotes(accounts[1], timepoint)).to.be.bignumber.equal(weight);
       });
 
@@ -114,7 +115,7 @@ function shouldBehaveLikeVotes(accounts, tokens, { mode = 'blocknumber', fungibl
 
         expect(await this.votes.getPastVotes(accounts[1], timepoint - 1)).to.be.bignumber.equal(weight);
         expect(await this.votes.getPastVotes(accounts[2], timepoint - 1)).to.be.bignumber.equal('0');
-        await time.advanceBlock();
+        await advanceBlock();
         expect(await this.votes.getPastVotes(accounts[1], timepoint)).to.be.bignumber.equal('0');
         expect(await this.votes.getPastVotes(accounts[2], timepoint)).to.be.bignumber.equal(weight);
       });
@@ -159,7 +160,7 @@ function shouldBehaveLikeVotes(accounts, tokens, { mode = 'blocknumber', fungibl
           expect(await this.votes.getVotes(delegator.address)).to.be.bignumber.equal('0');
           expect(await this.votes.getVotes(delegatee)).to.be.bignumber.equal(weight);
           expect(await this.votes.getPastVotes(delegatee, timepoint - 1)).to.be.bignumber.equal('0');
-          await time.advanceBlock();
+          await advanceBlock();
           expect(await this.votes.getPastVotes(delegatee, timepoint)).to.be.bignumber.equal(weight);
         });
 
@@ -271,8 +272,8 @@ function shouldBehaveLikeVotes(accounts, tokens, { mode = 'blocknumber', fungibl
         it('returns the latest block if >= last checkpoint block', async function () {
           const { receipt } = await this.votes.delegate(accounts[2], { from: accounts[1] });
           const timepoint = await clockFromReceipt[mode](receipt);
-          await time.advanceBlock();
-          await time.advanceBlock();
+          await advanceBlock();
+          await advanceBlock();
 
           const latest = await this.votes.getVotes(accounts[2]);
           expect(await this.votes.getPastVotes(accounts[2], timepoint)).to.be.bignumber.equal(latest);
@@ -280,11 +281,11 @@ function shouldBehaveLikeVotes(accounts, tokens, { mode = 'blocknumber', fungibl
         });
 
         it('returns zero if < first checkpoint block', async function () {
-          await time.advanceBlock();
+          await advanceBlock();
           const { receipt } = await this.votes.delegate(accounts[2], { from: accounts[1] });
           const timepoint = await clockFromReceipt[mode](receipt);
-          await time.advanceBlock();
-          await time.advanceBlock();
+          await advanceBlock();
+          await advanceBlock();
 
           expect(await this.votes.getPastVotes(accounts[2], timepoint - 1)).to.be.bignumber.equal('0');
         });

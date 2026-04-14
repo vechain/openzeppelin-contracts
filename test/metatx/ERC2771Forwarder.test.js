@@ -318,6 +318,25 @@ contract('ERC2771Forwarder', function (accounts) {
       });
     });
 
+    it('atomic batch with reverting request reverts the whole batch', async function () {
+      const extra = Wallet.generate();
+      extra.address = web3.utils.toChecksumAddress(extra.getAddressString());
+      const extraRequestData = {
+        ...this.requestData,
+        from: extra.address,
+        nonce: (await this.forwarder.nonces(extra.address)).toString(),
+        data: this.receiver.contract.methods.mockFunctionRevertsNoReason().encodeABI(),
+        value: web3.utils.toWei('10', 'gwei'),
+      };
+      extraRequestData.signature = this.sign(extra.getPrivateKey(), extraRequestData);
+      this.requestDatas.push(extraRequestData);
+      const totalValue = batchValue(this.requestDatas);
+
+      await expectRevert.unspecified(
+        this.forwarder.executeBatch(this.requestDatas, constants.ZERO_ADDRESS, { value: totalValue }),
+      );
+    });
+
     context('with tampered requests', function () {
       beforeEach(async function () {
         this.idx = 1; // Tampered idx
@@ -471,6 +490,46 @@ contract('ERC2771Forwarder', function (accounts) {
         const { transactions } = await web3.eth.getBlock('latest');
         const { gasUsed } = await web3.eth.getTransactionReceipt(transactions[0]);
 
+        expect(gasUsed).to.be.equal(gasAvailable);
+      });
+
+      it('bubbles out of gas forced by the relayer', async function () {
+        // We estimate until the selected request as if they were executed normally.
+        // Note it is slightly bigger because the selected request is not the index 0 and it affects
+        // the buffer needed.
+        //
+        // On VeChain, gas and VET (value) are separate resources: gas is paid in VTHO, value in VET.
+        // Because the forwarder contract has no VET balance, estimation with non-zero value fails.
+        // We estimate with value=0 since VeChain doesn't charge gas for VET transfers, and we must
+        // estimate BEFORE modifying the request data (to avoid estimating the out-of-gas function).
+        const gasAvailable =
+          (await Promise.all(
+            new Array(this.idx + 1).fill().map((_, i) => this.estimateRequest({ ...this.requestDatas[i], value: '0' })),
+          ).then(estimations => estimations.reduce((acc, e) => acc + e, 0))) + 2_000;
+
+        // Similarly to the single execute, a malicious relayer could grief requests.
+        this.requestDatas[this.idx].data = this.receiver.contract.methods.mockFunctionOutOfGas().encodeABI();
+        this.requestDatas[this.idx].gas = 1_000_000;
+        this.requestDatas[this.idx].signature = this.sign(
+          this.signers[this.idx].getPrivateKey(),
+          this.requestDatas[this.idx],
+        );
+
+        // The subcall out of gas should be caught by the contract and then bubbled up consuming
+        // the available gas with an `invalid` opcode.
+        await expectThorRevert(
+          this.forwarder.executeBatch(this.requestDatas, constants.ZERO_ADDRESS, {
+            gas: gasAvailable,
+            value: this.msgValue,
+          }),
+          'consuming all gas',
+          expectRevertCheckStrategy.contains,
+        );
+
+        const { transactions } = await web3.eth.getBlock('latest');
+        const { gasUsed } = await web3.eth.getTransactionReceipt(transactions[0]);
+
+        // We assert that indeed the gas was totally consumed.
         expect(gasUsed).to.be.equal(gasAvailable);
       });
     });

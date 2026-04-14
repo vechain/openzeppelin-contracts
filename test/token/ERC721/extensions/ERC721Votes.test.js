@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-const { expectEvent, time } = require('@openzeppelin/test-helpers');
+const { expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 const { clock, clockFromReceipt } = require('../../../helpers/time');
@@ -118,11 +118,51 @@ contract('ERC721Votes', function (accounts) {
           const { receipt } = await this.votes.transferFrom(account1, account2, tokens[0], { from: account1 });
           const timepoint = await clockFromReceipt[mode](receipt);
 
-          await time.advanceBlock();
-          await time.advanceBlock();
+          // VeChain Thor does not support evm_mine; send dummy txs to force new blocks
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
 
           expect(await this.votes.getPastTotalSupply(timepoint - 1)).to.be.bignumber.equal('1');
           expect(await this.votes.getPastTotalSupply(timepoint + 1)).to.be.bignumber.equal('1');
+
+          this.account1Votes = '0';
+          this.account2Votes = '0';
+        });
+
+        it('generally returns the voting balance at the appropriate checkpoint', async function () {
+          await this.votes.$_mint(account1, tokens[1]);
+          await this.votes.$_mint(account1, tokens[2]);
+          await this.votes.$_mint(account1, tokens[3]);
+
+          const total = await this.votes.balanceOf(account1);
+
+          const { receipt: r1 } = await this.votes.delegate(other1, { from: account1 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          const { receipt: r2 } = await this.votes.transferFrom(account1, other2, tokens[0], { from: account1 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          const { receipt: r3 } = await this.votes.transferFrom(account1, other2, tokens[2], { from: account1 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          const { receipt: r4 } = await this.votes.transferFrom(other2, account1, tokens[2], { from: other2 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
+
+          const t1 = await clockFromReceipt[mode](r1);
+          const t2 = await clockFromReceipt[mode](r2);
+          const t3 = await clockFromReceipt[mode](r3);
+          const t4 = await clockFromReceipt[mode](r4);
+
+          expect(await this.votes.getPastVotes(other1, t1 - 1)).to.be.bignumber.equal('0');
+          expect(await this.votes.getPastVotes(other1, t1)).to.be.bignumber.equal(total);
+          expect(await this.votes.getPastVotes(other1, t1 + 1)).to.be.bignumber.equal(total);
+          expect(await this.votes.getPastVotes(other1, t2)).to.be.bignumber.equal('3');
+          expect(await this.votes.getPastVotes(other1, t2 + 1)).to.be.bignumber.equal('3');
+          expect(await this.votes.getPastVotes(other1, t3)).to.be.bignumber.equal('2');
+          expect(await this.votes.getPastVotes(other1, t3 + 1)).to.be.bignumber.equal('2');
+          expect(await this.votes.getPastVotes(other1, t4)).to.be.bignumber.equal('3');
+          expect(await this.votes.getPastVotes(other1, t4 + 1)).to.be.bignumber.equal('3');
 
           this.account1Votes = '0';
           this.account2Votes = '0';
@@ -134,7 +174,8 @@ contract('ERC721Votes', function (accounts) {
 
           // need to advance 2 blocks to see the effect of a transfer on "getPastVotes"
           const timepoint = await clock[mode]();
-          await time.advanceBlock();
+          // VeChain Thor does not support evm_mine; send a dummy tx to force a new block
+          await web3.eth.sendTransaction({ from: account1, to: account1, value: 0 });
           expect(await this.votes.getPastVotes(account1, timepoint)).to.be.bignumber.equal(this.account1Votes);
           expect(await this.votes.getPastVotes(account2, timepoint)).to.be.bignumber.equal(this.account2Votes);
         });

@@ -1,4 +1,5 @@
 require('@openzeppelin/test-helpers');
+const { MAX_UINT64 } = require('../../helpers/constants');
 
 const AuthorityUtils = artifacts.require('$AuthorityUtils');
 const NotAuthorityMock = artifacts.require('NotAuthorityMock');
@@ -51,23 +52,40 @@ contract('AuthorityUtils', function (accounts) {
     });
 
     describe('when authority replies with a delay', function () {
+      const MAX_UINT32 = web3.utils.toBN('4294967295'); // 2^32 - 1
+
       beforeEach(async function () {
         this.authority = await AuthorityDelayMock.new();
-        this.immediate = true;
-        this.delay = web3.utils.toBN(42);
-        await this.authority._setImmediate(this.immediate);
-        await this.authority._setDelay(this.delay);
       });
 
-      it('returns (immediate, delay)', async function () {
-        const { immediate, delay } = await this.mock.$canCallWithDelay(
+      for (const immediate of [true, false]) {
+        for (const delay of [web3.utils.toBN(0), web3.utils.toBN(42), MAX_UINT32]) {
+          it(`returns (immediate=${immediate}, delay=${delay})`, async function () {
+            await this.authority._setImmediate(immediate);
+            await this.authority._setDelay(delay);
+            const result = await this.mock.$canCallWithDelay(
+              this.authority.address,
+              user,
+              other,
+              '0x12345678',
+            );
+            expect(result.immediate).to.equal(immediate);
+            expect(result.delay).to.be.bignumber.equal(delay);
+          });
+        }
+      }
+
+      it('out of bound delay', async function () {
+        await this.authority._setImmediate(false);
+        await this.authority._setDelay(web3.utils.toBN(MAX_UINT64)); // bigger than expected uint32
+        const result = await this.mock.$canCallWithDelay(
           this.authority.address,
           user,
           other,
           '0x12345678',
         );
-        expect(immediate).to.equal(this.immediate);
-        expect(delay).to.be.bignumber.equal(this.delay);
+        expect(result.immediate).to.equal(false);
+        expect(result.delay).to.be.bignumber.equal('0');
       });
     });
 

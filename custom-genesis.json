@@ -1,5 +1,5 @@
 {
-    "gasLimit": 40000000,
+    "gasLimit": 100000000,
     "extraData": "Early Galactica",
     "forkConfig": {
       "VIP191": 0,
@@ -8,7 +8,9 @@
       "ETH_IST": 0,
       "VIP214": 0,
       "FINALITY": 0,
-      "GALACTICA": 1
+      "GALACTICA": 0,
+      "HAYABUSA":0,
+      "INTERSTELLAR":1
     },
     "accounts": [
       {
@@ -596,7 +598,6 @@
       ]
     },
     "params": {
-      "executorAddress": "0x0000000000000000000000004578656375746f72",
       "baseGasPrice": 10000000000000,
       "rewardRatio": "300000000000000000",
       "proposerEndorsement": "25000000000000000000000000"

@@ -119,6 +119,16 @@ contract('SafeCast', async function () {
 
   range(8, 256, 8).forEach(bits => testToInt(bits));
 
+  describe('toUint (bool)', function () {
+    it('toUint(false) should be 0', async function () {
+      expect(await this.safeCast.$toUint(false)).to.be.bignumber.equal('0');
+    });
+
+    it('toUint(true) should be 1', async function () {
+      expect(await this.safeCast.$toUint(true)).to.be.bignumber.equal('1');
+    });
+  });
+
   describe('toInt256', () => {
     const maxUint256 = new BN('2').pow(new BN(256)).subn(1);
     const maxInt256 = new BN('2').pow(new BN(255)).subn(1);

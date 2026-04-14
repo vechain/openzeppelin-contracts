@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v5.0.0) (access/manager/IAccessManager.sol)
+// OpenZeppelin Contracts (last updated v5.6.0) (access/manager/IAccessManager.sol)
 
 pragma solidity ^0.8.20;
-
-import {IAccessManaged} from "./IAccessManaged.sol";
-import {Time} from "../../utils/types/Time.sol";
 
 interface IAccessManager {
     /**
@@ -39,7 +36,7 @@ interface IAccessManager {
      *
      * NOTE: The meaning of the `since` argument depends on the `newMember` argument.
      * If the role is granted to a new member, the `since` argument indicates when the account becomes a member of the role,
-     * otherwise it indicates the execution delay for this account and roleId is updated.
+     * otherwise it indicates the timestamp when the execution delay update takes effect for this account and roleId.
      */
     event RoleGranted(uint64 indexed roleId, address indexed account, uint32 delay, uint48 since, bool newMember);
 
@@ -82,8 +79,9 @@ interface IAccessManager {
     error AccessManagerNotScheduled(bytes32 operationId);
     error AccessManagerNotReady(bytes32 operationId);
     error AccessManagerExpired(bytes32 operationId);
-    error AccessManagerLockedAccount(address account);
+    error AccessManagerLockedAccount(address target);
     error AccessManagerLockedRole(uint64 roleId);
+    error AccessManagerLockedFunction(bytes4 selector);
     error AccessManagerBadConfirmation();
     error AccessManagerUnauthorizedAccount(address msgsender, uint64 roleId);
     error AccessManagerUnauthorizedCall(address caller, address target, bytes4 selector);
@@ -101,15 +99,15 @@ interface IAccessManager {
      * previously set delay (not zero), then the function should return false and the caller should schedule the operation
      * for future execution.
      *
-     * If `immediate` is true, the delay can be disregarded and the operation can be immediately executed, otherwise
+     * If `allowed` is true, the delay can be disregarded and the operation can be immediately executed, otherwise
      * the operation can be executed if and only if delay is greater than 0.
      *
      * NOTE: The IAuthority interface does not include the `uint32` delay. This is an extension of that interface that
      * is backward compatible. Some contracts may thus ignore the second return argument. In that case they will fail
      * to identify the indirect workflow, and will consider calls that require a delay to be forbidden.
      *
-     * NOTE: This function does not report the permissions of this manager itself. These are defined by the
-     * {_canCallSelf} function instead.
+     * NOTE: This function does not report the permissions of the admin functions in the manager itself. These are defined by the
+     * {AccessManager} documentation.
      */
     function canCall(
         address caller,
@@ -127,13 +125,15 @@ interface IAccessManager {
 
     /**
      * @dev Minimum setback for all delay updates, with the exception of execution delays. It
-     * can be increased without setback (and reset via {revokeRole} in the case event of an
+     * can be increased without setback (and reset via {revokeRole} in the event of an
      * accidental increase). Defaults to 5 days.
      */
     function minSetback() external view returns (uint32);
 
     /**
      * @dev Get whether the contract is closed disabling any access. Otherwise role permissions are applied.
+     *
+     * NOTE: When the manager itself is closed, admin functions are still accessible to avoid locking the contract.
      */
     function isTargetClosed(address target) external view returns (bool);
 
@@ -172,7 +172,7 @@ interface IAccessManager {
 
     /**
      * @dev Get the access details for a given account for a given role. These details include the timepoint at which
-     * membership becomes active, and the delay applied to all operation by this user that requires this permission
+     * membership becomes active, and the delay applied to all operations by this user that requires this permission
      * level.
      *
      * Returns:
@@ -181,13 +181,16 @@ interface IAccessManager {
      * [2] Pending execution delay for the account.
      * [3] Timestamp at which the pending execution delay will become active. 0 means no delay update is scheduled.
      */
-    function getAccess(uint64 roleId, address account) external view returns (uint48, uint32, uint32, uint48);
+    function getAccess(
+        uint64 roleId,
+        address account
+    ) external view returns (uint48 since, uint32 currentDelay, uint32 pendingDelay, uint48 effect);
 
     /**
      * @dev Check if a given account currently has the permission level corresponding to a given role. Note that this
      * permission might be associated with an execution delay. {getAccess} can provide more details.
      */
-    function hasRole(uint64 roleId, address account) external view returns (bool, uint32);
+    function hasRole(uint64 roleId, address account) external view returns (bool isMember, uint32 executionDelay);
 
     /**
      * @dev Give a label to a role, for improved role discoverability by UIs.
@@ -195,6 +198,7 @@ interface IAccessManager {
      * Requirements:
      *
      * - the caller must be a global admin
+     * - `roleId` must not be the `ADMIN_ROLE` or `PUBLIC_ROLE`
      *
      * Emits a {RoleLabel} event.
      */
@@ -253,6 +257,7 @@ interface IAccessManager {
      * Requirements:
      *
      * - the caller must be a global admin
+     * - `roleId` must not be the `ADMIN_ROLE` or `PUBLIC_ROLE`
      *
      * Emits a {RoleAdminChanged} event
      */
@@ -264,6 +269,7 @@ interface IAccessManager {
      * Requirements:
      *
      * - the caller must be a global admin
+     * - `roleId` must not be the `ADMIN_ROLE` or `PUBLIC_ROLE`
      *
      * Emits a {RoleGuardianChanged} event
      */
@@ -275,6 +281,7 @@ interface IAccessManager {
      * Requirements:
      *
      * - the caller must be a global admin
+     * - `roleId` must not be the `PUBLIC_ROLE`
      *
      * Emits a {RoleGrantDelayChanged} event.
      */
@@ -304,6 +311,8 @@ interface IAccessManager {
 
     /**
      * @dev Set the closed flag for a contract.
+     *
+     * Closing the manager itself won't disable access to admin methods to avoid locking the contract.
      *
      * Requirements:
      *
@@ -340,7 +349,11 @@ interface IAccessManager {
      * this is necessary, a random byte can be appended to `data` to act as a salt that will be ignored by the target
      * contract if it is using standard Solidity ABI encoding.
      */
-    function schedule(address target, bytes calldata data, uint48 when) external returns (bytes32, uint32);
+    function schedule(
+        address target,
+        bytes calldata data,
+        uint48 when
+    ) external returns (bytes32 operationId, uint32 nonce);
 
     /**
      * @dev Execute a function that is delay restricted, provided it was properly scheduled beforehand, or the
@@ -369,7 +382,7 @@ interface IAccessManager {
      * @dev Consume a scheduled operation targeting the caller. If such an operation exists, mark it as consumed
      * (emit an {OperationExecuted} event and clean the state). Otherwise, throw an error.
      *
-     * This is useful for contract that want to enforce that calls targeting them were scheduled on the manager,
+     * This is useful for contracts that want to enforce that calls targeting them were scheduled on the manager,
      * with all the verifications that it implies.
      *
      * Emit a {OperationExecuted} event.

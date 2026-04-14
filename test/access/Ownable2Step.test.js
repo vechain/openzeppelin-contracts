@@ -61,5 +61,19 @@ contract('Ownable2Step', function (accounts) {
 
       expect(await this.ownable2Step.owner()).to.equal(accountA);
     });
+
+    it('allows the owner to cancel an initiated ownership transfer by setting newOwner to zero address', async function () {
+      // initiate ownership transfer to accountA
+      await this.ownable2Step.transferOwnership(accountA, { from: owner });
+      expect(await this.ownable2Step.pendingOwner()).to.equal(accountA);
+
+      // cancel the ownership transfer by setting newOwner to zero address
+      const receipt = await this.ownable2Step.transferOwnership(ZERO_ADDRESS, { from: owner });
+      expectEvent(receipt, 'OwnershipTransferStarted', { previousOwner: owner, newOwner: ZERO_ADDRESS });
+      expect(await this.ownable2Step.pendingOwner()).to.equal(ZERO_ADDRESS);
+
+      // verify that accountA cannot accept ownership anymore
+      await expectRevert.unspecified(this.ownable2Step.acceptOwnership({ from: accountA }));
+    });
   });
 });

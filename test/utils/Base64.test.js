@@ -27,8 +27,49 @@ contract('Base64', function () {
       expect(await this.base64.$encode(input)).to.equal('dGVzdDEy');
     });
 
+    it('converts to base64 encoded string (/ case)', async function () {
+      const input = web3.utils.asciiToHex('où');
+      expect(await this.base64.$encode(input)).to.equal('b/k=');
+    });
+
+    it('converts to base64 encoded string (+ case)', async function () {
+      const input = web3.utils.asciiToHex('zs~1t8');
+      expect(await this.base64.$encode(input)).to.equal('enN+MXQ4');
+    });
+
     it('empty bytes', async function () {
       expect(await this.base64.$encode([])).to.equal('');
+    });
+  });
+
+  describe('from bytes - base64url', function () {
+    it('converts to base64url encoded string with double padding', async function () {
+      const input = web3.utils.asciiToHex('test');
+      expect(await this.base64.$encodeURL(input)).to.equal('dGVzdA');
+    });
+
+    it('converts to base64url encoded string with single padding', async function () {
+      const input = web3.utils.asciiToHex('test1');
+      expect(await this.base64.$encodeURL(input)).to.equal('dGVzdDE');
+    });
+
+    it('converts to base64url encoded string without padding', async function () {
+      const input = web3.utils.asciiToHex('test12');
+      expect(await this.base64.$encodeURL(input)).to.equal('dGVzdDEy');
+    });
+
+    it('converts to base64url encoded string (_ case)', async function () {
+      const input = web3.utils.asciiToHex('où');
+      expect(await this.base64.$encodeURL(input)).to.equal('b_k');
+    });
+
+    it('converts to base64url encoded string (- case)', async function () {
+      const input = web3.utils.asciiToHex('zs~1t8');
+      expect(await this.base64.$encodeURL(input)).to.equal('enN-MXQ4');
+    });
+
+    it('empty bytes', async function () {
+      expect(await this.base64.$encodeURL([])).to.equal('');
     });
   });
 

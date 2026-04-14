@@ -88,42 +88,61 @@ contract('Time', function () {
     });
 
     it('get & getFull', async function () {
-      const timepoint = await clock.timestamp().then(BigInt);
+      const initTimepoint = await clock.timestamp().then(BigInt);
       const valueBefore = 24194n;
       const valueAfter = 4214143n;
 
-      for (const effect of effectSamplesForTimepoint(timepoint)) {
-        const isPast = effect <= timepoint;
-
+      for (const effect of effectSamplesForTimepoint(initTimepoint)) {
         const delay = packDelay({ valueBefore, valueAfter, effect });
 
-        expect(await this.mock.$get(delay)).to.be.bignumber.equal(String(isPast ? valueAfter : valueBefore));
+        const getResult = await this.mock.$get(delay);
+        const getTimepoint = await clock.timestamp().then(BigInt);
+        const isPastGet = effect <= getTimepoint;
+        expect(getResult).to.be.bignumber.equal(String(isPastGet ? valueAfter : valueBefore));
 
         const result = await this.mock.$getFull(delay);
-        expect(result[0]).to.be.bignumber.equal(String(isPast ? valueAfter : valueBefore));
-        expect(result[1]).to.be.bignumber.equal(String(isPast ? 0n : valueAfter));
-        expect(result[2]).to.be.bignumber.equal(String(isPast ? 0n : effect));
+        const fullTimepoint = await clock.timestamp().then(BigInt);
+        const isPastFull = effect <= fullTimepoint;
+        expect(result[0]).to.be.bignumber.equal(String(isPastFull ? valueAfter : valueBefore));
+        expect(result[1]).to.be.bignumber.equal(String(isPastFull ? 0n : valueAfter));
+        expect(result[2]).to.be.bignumber.equal(String(isPastFull ? 0n : effect));
       }
     });
 
     it('withUpdate', async function () {
-      const timepoint = await clock.timestamp().then(BigInt);
+      const initTimepoint = await clock.timestamp().then(BigInt);
       const valueBefore = 24194n;
       const valueAfter = 4214143n;
       const newvalueAfter = 94716n;
 
-      for (const effect of effectSamplesForTimepoint(timepoint))
+      for (const effect of effectSamplesForTimepoint(initTimepoint))
         for (const minSetback of [...SOME_VALUES, MAX_UINT32]) {
-          const isPast = effect <= timepoint;
-          const expectedvalueBefore = isPast ? valueAfter : valueBefore;
-          const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n);
-
           const result = await this.mock.$withUpdate(
             packDelay({ valueBefore, valueAfter, effect }),
             newvalueAfter,
             minSetback,
           );
 
+          // Derive the contract's actual timepoint from the result to avoid
+          // race conditions between separate eth_call invocations.
+          // The contract returns: effect = timestamp() + setback
+          // Unpack result[0] to learn what the contract computed for valueBefore,
+          // which tells us isPast and thus the setback.
+          const unpacked = unpackDelay(BigInt(result[0].toString()));
+          const actualValueBefore = unpacked.valueBefore;
+          const actualSetback = max(minSetback, actualValueBefore - newvalueAfter, 0n);
+          const timepoint = BigInt(result[1].toString()) - actualSetback;
+
+          const isPast = effect <= timepoint;
+          const expectedvalueBefore = isPast ? valueAfter : valueBefore;
+          const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n);
+
+          // Verify the unpacked fields match expectations
+          expect(unpacked.valueAfter).to.equal(newvalueAfter);
+          expect(unpacked.valueBefore).to.equal(expectedvalueBefore);
+          expect(unpacked.effect).to.equal(timepoint + expectedSetback);
+
+          // Verify the packed result and effect
           expect(result[0]).to.be.bignumber.equal(
             String(
               packDelay({

@@ -147,4 +147,140 @@ contract('Strings', function () {
       expect(await this.strings.methods['$equal(string,string)'](str1, str2)).to.equal(true);
     });
   });
+
+  describe('toChecksumHexString', function () {
+    const addresses = [
+      '0xa9036907dccae6a1e0033479b12e837e5cf5a02f',
+      '0x0000e0ca771e21bd00057f54a68c30d400000000',
+      '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed',
+      '0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359',
+      '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB',
+      '0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb',
+    ];
+
+    for (const addr of addresses) {
+      it(`converts ${addr}`, async function () {
+        expect(await this.strings.$toChecksumHexString(addr)).to.equal(
+          web3.utils.toChecksumAddress(addr),
+        );
+      });
+    }
+  });
+
+  describe('parseAddress', function () {
+    const addresses = [
+      '0xa9036907dccae6a1e0033479b12e837e5cf5a02f',
+      '0x0000e0ca771e21bd00057f54a68c30d400000000',
+      '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed',
+      '0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359',
+      '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB',
+      '0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb',
+    ];
+
+    for (const addr of addresses) {
+      it(`parses ${addr}`, async function () {
+        const checksumAddr = web3.utils.toChecksumAddress(addr);
+        expect(await this.strings.$parseAddress(addr)).to.equal(checksumAddr);
+        const [success, parsed] = Object.values(await this.strings.$tryParseAddress(addr));
+        expect(success).to.be.true;
+        expect(parsed).to.equal(checksumAddr);
+      });
+    }
+
+    it('returns false for invalid address format', async function () {
+      const [success] = Object.values(
+        await this.strings.$tryParseAddress('0x736a507fB2881d6-B62dcA54673CF5295dC07833'),
+      );
+      expect(success).to.be.false;
+    });
+  });
+
+  describe('parseUint and tryParseUint', function () {
+    const values = ['0', '7', '123', '1234567890', '12345678901234567890'];
+
+    for (const value of values) {
+      it(`parses ${value}`, async function () {
+        expect((await this.strings.$parseUint(value)).toString()).to.equal(value);
+        const [success, parsed] = Object.values(await this.strings.$tryParseUint(value));
+        expect(success).to.be.true;
+        expect(parsed.toString()).to.equal(value);
+      });
+    }
+
+    it('returns false for invalid uint string', async function () {
+      const [success] = Object.values(await this.strings.$tryParseUint('abc'));
+      expect(success).to.be.false;
+    });
+  });
+
+  describe('parseInt and tryParseInt', function () {
+    const values = ['0', '7', '123', '-42', '-1234567890'];
+
+    for (const value of values) {
+      it(`parses ${value}`, async function () {
+        expect((await this.strings.$parseInt(value)).toString()).to.equal(value);
+        const [success, parsed] = Object.values(await this.strings.$tryParseInt(value));
+        expect(success).to.be.true;
+        expect(parsed.toString()).to.equal(value);
+      });
+    }
+
+    it('returns false for invalid int string', async function () {
+      const [success] = Object.values(await this.strings.$tryParseInt('abc'));
+      expect(success).to.be.false;
+    });
+  });
+
+  describe('parseHexUint and tryParseHexUint', function () {
+    it('parses 0x00', async function () {
+      expect((await this.strings.$parseHexUint('0x00')).toString()).to.equal('0');
+      const [success, parsed] = Object.values(await this.strings.$tryParseHexUint('0x00'));
+      expect(success).to.be.true;
+      expect(parsed.toString()).to.equal('0');
+    });
+
+    it('parses 0x4132', async function () {
+      expect((await this.strings.$parseHexUint('0x4132')).toString()).to.equal('16690');
+      const [success, parsed] = Object.values(await this.strings.$tryParseHexUint('0x4132'));
+      expect(success).to.be.true;
+      expect(parsed.toString()).to.equal('16690');
+    });
+
+    it('parses hex without 0x prefix', async function () {
+      const [success, parsed] = Object.values(await this.strings.$tryParseHexUint('4132'));
+      expect(success).to.be.true;
+      expect(parsed.toString()).to.equal('16690');
+    });
+
+    it('returns false for invalid hex string', async function () {
+      const [success] = Object.values(await this.strings.$tryParseHexUint('0xgg'));
+      expect(success).to.be.false;
+    });
+  });
+
+  describe('toHexString (bytes)', function () {
+    for (const length of [0, 17, 20, 32]) {
+      it(`hexlifies buffer of length ${length}`, async function () {
+        const buffer = web3.utils.randomHex(length);
+        const result = await this.strings.methods['$toHexString(bytes)'](buffer);
+        expect(result.toLowerCase()).to.equal(buffer.toLowerCase());
+      });
+    }
+  });
+
+  describe('escapeJSON', function () {
+    const inputs = [
+      { input: '', expected: '' },
+      { input: 'a', expected: 'a' },
+      { input: '{"a":"b/c"}', expected: '{"a":"b\\/c"}' },
+    ];
+
+    for (const { input } of inputs) {
+      it(`escapes ${JSON.stringify(input)}`, async function () {
+        expect(await this.strings.$escapeJSON(input)).to.equal(
+          JSON.stringify(input).slice(1, -1),
+        );
+      });
+    }
+  });
 });
