@@ -6,7 +6,7 @@
 // - COMPILE_VERSION:   compiler version (default: 0.8.20)
 // - COINMARKETCAP:     coinmarkercat api key for USD value in gas report
 
-require("@vechain/sdk-hardhat-plugin");
+require('@nomicfoundation/hardhat-ethers');
 
 const fs = require('fs-extra');
 const path = require('path');
@@ -114,8 +114,12 @@ module.exports = {
       allowUnlimitedContractSize: !withOptimizations,
     },
     vechain: {
-      url: "http://127.0.0.1:8669",
+      // VeChain Thor (branch pedro/eth_eq_json_rpc) serves an Ethereum-equivalent
+      // JSON-RPC endpoint under the /rpc path of the standard Thor API port.
+      url: "http://127.0.0.1:8669/rpc",
       accounts: {
+        // Default HD path (m/44'/60'/0'/0) matches the addresses pre-funded in
+        // custom-genesis.json, so the derived signers are funded on the solo net.
         mnemonic: "denial kitchen pet squirrel other broom bar gas better priority spoil cross",
         count: 10,
       },

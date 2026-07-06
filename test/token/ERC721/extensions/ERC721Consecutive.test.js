@@ -88,7 +88,7 @@ contract('ERC721Consecutive', function (accounts) {
         it('reverts on consecutive minting to the zero address', async function () {
           await expectRevert(
             ERC721ConsecutiveMock.new(name, symbol, offset, delegates, [ZERO_ADDRESS], [10]),
-            "The transaction receipt didn't contain a contract address."
+            "The contract code couldn't be stored, please check your gas limit."
           );
         });
       });
@@ -182,21 +182,21 @@ contract('ERC721Consecutive', function (accounts) {
     it('cannot mint a batch larger than 5000', async function () {
       await expectRevert(
         ERC721ConsecutiveMock.new(name, symbol, 0, [], [user1], ['5001']),
-        "The transaction receipt didn't contain a contract address."
+        "The contract code couldn't be stored, please check your gas limit."
       );
     });
 
     it('cannot use single minting during construction', async function () {
       await expectRevert(
         ERC721ConsecutiveNoConstructorMintMock.new(name, symbol),
-        "The transaction receipt didn't contain a contract address."
+        "The contract code couldn't be stored, please check your gas limit."
       );
     });
 
     it('cannot use single minting during construction', async function () {
       await expectRevert(
         ERC721ConsecutiveNoConstructorMintMock.new(name, symbol),
-        "The transaction receipt didn't contain a contract address."
+        "The contract code couldn't be stored, please check your gas limit."
       );
     });
 
@@ -208,7 +208,7 @@ contract('ERC721Consecutive', function (accounts) {
           batches.map(({ receiver }) => receiver),
           batches.map(({ amount }) => amount),
         ),
-        "The transaction receipt didn't contain a contract address."
+        "The contract code couldn't be stored, please check your gas limit."
       );
     });
   });

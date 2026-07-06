@@ -11,7 +11,7 @@ contract('ERC20Capped', function (accounts) {
   const symbol = 'MTKN';
 
   it('requires a non-zero cap', async function () {
-    await expectRevert(ERC20Capped.new(name, symbol, 0), "The transaction receipt didn't contain a contract address.");
+    await expectRevert(ERC20Capped.new(name, symbol, 0), "The contract code couldn't be stored, please check your gas limit.");
   });
 
   context('once deployed', async function () {

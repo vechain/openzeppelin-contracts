@@ -126,6 +126,8 @@ contract('ERC2771Forwarder', function (accounts) {
     });
   });
 
+  // TODO: Will be faild. Because the gas cost is different, waitting for investigate EIP-7623
+
   context('execute', function () {
     context('with valid requests', function () {
       beforeEach(async function () {
@@ -253,6 +255,8 @@ contract('ERC2771Forwarder', function (accounts) {
       expect(gasUsed).to.be.equal(gasAvailable);
     });
   });
+
+  // TODO: Will be faild. Because the gas cost is different, waitting for investigate EIP-7623
 
   context('executeBatch', function () {
     const batchValue = requestDatas => requestDatas.reduce((value, request) => value + Number(request.value), 0);

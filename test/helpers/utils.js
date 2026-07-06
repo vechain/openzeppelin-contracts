@@ -63,9 +63,11 @@ async function getStorageAt(
 ) {
     const provider = await getThorProvider();
 
+    // The standard hardhat HttpProvider JSON.stringifies params, which throws on
+    // BigInt slots. Normalize index to a hex quantity string and default the block.
     const data = await provider.request({
         method: "eth_getStorageAt",
-        params: [address, index, block],
+        params: [address, "0x" + BigInt(index).toString(16), block ?? "latest"],
     });
 
     return data;

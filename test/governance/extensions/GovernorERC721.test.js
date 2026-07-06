@@ -39,7 +39,12 @@ contract('GovernorERC721', function (accounts) {
 
         await web3.eth.sendTransaction({ from: owner, to: this.mock.address, value });
 
-        await Promise.all([NFT0, NFT1, NFT2, NFT3, NFT4].map(tokenId => this.token.$_mint(owner, tokenId)));
+        // Mint sequentially: VeChain's eth_getTransactionCount has no pending-pool view, so
+        // concurrent same-account txs (Promise.all) would collide on the same nonce.
+        // TODO: Waiting the 'pending' function implementation
+        for (const tokenId of [NFT0, NFT1, NFT2, NFT3, NFT4]) {
+          await this.token.$_mint(owner, tokenId);
+        }
         await this.helper.delegate({ token: this.token, to: voter1, tokenId: NFT0 }, { from: owner });
         await this.helper.delegate({ token: this.token, to: voter2, tokenId: NFT1 }, { from: owner });
         await this.helper.delegate({ token: this.token, to: voter2, tokenId: NFT2 }, { from: owner });
